@@ -31,10 +31,13 @@ fn main() {
                         for j in &numbers {
                             let sum = i + j;
                             if sum_to_pair.contains_key(&sum) {
-                                eprintln!("Duplicate sum");
-                                continue;
+                                // eprintln!("Duplicate sum");
+                                // Duplicates would result in non-deterministic output -> cannot be
+                                // valid
+                                sum_to_pair.remove(&sum);
+                            } else {
+                                sum_to_pair.insert(sum, (i, *j));
                             }
-                            sum_to_pair.insert(sum, (i, *j));
                         }
                         numbers.insert(i);
                     }
