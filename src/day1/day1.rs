@@ -18,7 +18,7 @@ fn main() {
                         }
                         numbers.insert(i);
                     }
-                    Err(e) => panic!("Error reading line"),
+                    Err(_) => panic!("Error reading line"),
                 }
             }
         },
