@@ -8,7 +8,11 @@ use std::fmt;
 
 fn main() {
     let input = parse_input();
-    println!("Tree collisions = {}", input.tree_collisions());
+    println!("(1,1) Tree collisions = {}", input.tree_collisions(1, 1));
+    println!("(3,1) Tree collisions = {}", input.tree_collisions(3, 1));
+    println!("(5,1) Tree collisions = {}", input.tree_collisions(5, 1));
+    println!("(7,1) Tree collisions = {}", input.tree_collisions(7, 1));
+    println!("(1,2) Tree collisions = {}", input.tree_collisions(1, 2));
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -30,11 +34,11 @@ struct InputData {
 }
 
 impl InputData {
-    fn tree_collisions(&self) -> usize {
+    fn tree_collisions(&self, right: usize, down: usize) -> usize {
         let mut collisions = 0;
         let mut column = 0;
 
-        for row in self.slope.iter() {
+        for row in self.slope.iter().step_by(down) {
             if row[column] == Slope::Tree {
                 // println!(
                 //     "{:?} at {} is a tree",
@@ -43,7 +47,7 @@ impl InputData {
                 // );
                 collisions += 1;
             }
-            column = (column + 3) % row.len();
+            column = (column + right) % row.len();
         }
 
         collisions
