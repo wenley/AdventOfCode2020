@@ -14,8 +14,15 @@ fn main() {
 }
 
 struct Passport {
-    data: HashMap<String, String>,
     index: usize,
+    birth_year: String,
+    issue_year: String,
+    expire_year: String,
+    height: String,
+    hair_color: String,
+    eye_color: String,
+    passport_id: String,
+    country_id: String,
 }
 
 struct InputData {
@@ -23,21 +30,33 @@ struct InputData {
 }
 
 impl Passport {
-    fn is_valid(&self) -> bool {
-        const expected_keys: [&str; 8] = [
-            "byr",
-            "iyr",
-            "eyr",
-            "hgt",
-            "hcl",
-            "ecl",
-            "pid",
-            "cid",
-        ];
+    fn from_hash(data: HashMap<String, String>, index: usize) -> Passport {
+        Passport {
+            index: index,
+            birth_year: data.get("byr").map(|s| s.to_string()).unwrap_or("".to_string()),
+            issue_year: data.get("iyr").map(|s| s.to_string()).unwrap_or("".to_string()),
+            expire_year: data.get("eyr").map(|s| s.to_string()).unwrap_or("".to_string()),
+            height: data.get("hgt").map(|s| s.to_string()).unwrap_or("".to_string()),
+            hair_color: data.get("hcl").map(|s| s.to_string()).unwrap_or("".to_string()),
+            eye_color: data.get("ecl").map(|s| s.to_string()).unwrap_or("".to_string()),
+            passport_id: data.get("pid").map(|s| s.to_string()).unwrap_or("".to_string()),
+            country_id: data.get("cid").map(|s| s.to_string()).unwrap_or("".to_string()),
+        }
+    }
 
-        let missing_keys = expected_keys.iter().filter(|key| !self.data.contains_key(&key.to_string())).collect::<Vec<_>>();
+    fn is_valid(&self) -> bool {
+        let mut missing_keys = vec![];
+        if self.birth_year.len() == 0 { missing_keys.push("byr"); }
+        if self.issue_year.len() == 0 { missing_keys.push("iyr"); }
+        if self.expire_year.len() == 0 { missing_keys.push("eyr"); }
+        if self.height.len() == 0 { missing_keys.push("hgt"); }
+        if self.hair_color.len() == 0 { missing_keys.push("hcl"); }
+        if self.eye_color.len() == 0 { missing_keys.push("ecl"); }
+        if self.passport_id.len() == 0 { missing_keys.push("pid"); }
+        // if self.country_id.len() == 0 { missing_keys.push("cid"); }
+
         let valid = missing_keys.is_empty();
-        eprintln!("({}) {:?} is valid? {:?} (missing {:?})", self.index, self.data, valid, missing_keys);
+        eprintln!("({}) is valid? {:?} (missing {:?})", self.index, valid, missing_keys);
         valid
     }
 }
@@ -61,10 +80,7 @@ fn parse_input() -> InputData {
                 match line {
                     Ok(stuff) => {
                         if stuff.len() <= 1 {
-                            let passport = Passport {
-                                data: data,
-                                index: index,
-                            };
+                            let passport = Passport::from_hash(data, index);
                             passports.push(passport);
                             data = HashMap::new();
                             index += 1;
@@ -81,10 +97,7 @@ fn parse_input() -> InputData {
                     Err(_) => panic!("Error reading line"),
                 }
             }
-            let passport = Passport {
-                data: data,
-                index: index,
-            };
+            let passport = Passport::from_hash(data, index);
             passports.push(passport);
 
             InputData {
