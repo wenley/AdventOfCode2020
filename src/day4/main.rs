@@ -5,12 +5,25 @@ use std::fs;
 use std::io::BufRead;
 use std::path::Path;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use regex::Regex;
 
 fn main() {
     let input = parse_input();
     eprintln!("Found {} entries", input.passports.len());
     println!("Found {} valid passports", input.valid_passports());
+    // let passport = Passport {
+    //     index: 0,
+    //     birth_year: "2026".to_string(),
+    //     issue_year: "2028".to_string(),
+    //     expire_year: "1943".to_string(),
+    //     height: "64cm".to_string(),
+    //     hair_color: "z".to_string(),
+    //     eye_color: "zzz".to_string(),
+    //     passport_id: "160cm".to_string(),
+    //     country_id: "74".to_string(),
+    // };
+    // println!("valid? {}", passport.is_valid());
 }
 
 struct Passport {
@@ -46,18 +59,79 @@ impl Passport {
 
     fn is_valid(&self) -> bool {
         let mut missing_keys = vec![];
-        if self.birth_year.len() == 0 { missing_keys.push("byr"); }
-        if self.issue_year.len() == 0 { missing_keys.push("iyr"); }
-        if self.expire_year.len() == 0 { missing_keys.push("eyr"); }
-        if self.height.len() == 0 { missing_keys.push("hgt"); }
-        if self.hair_color.len() == 0 { missing_keys.push("hcl"); }
-        if self.eye_color.len() == 0 { missing_keys.push("ecl"); }
-        if self.passport_id.len() == 0 { missing_keys.push("pid"); }
+        if !self.valid_birth_year() { missing_keys.push("byr"); }
+        if !self.valid_issue_year() { missing_keys.push("iyr"); }
+        if !self.valid_expire_year() { missing_keys.push("eyr"); }
+        if !self.valid_height() { missing_keys.push("hgt"); }
+        if !self.valid_hair_color() { missing_keys.push("hcl"); }
+        if !self.valid_eye_color() { eprintln!("bad eye color"); missing_keys.push("ecl"); }
+        if !self.valid_passport_id() { missing_keys.push("pid"); }
         // if self.country_id.len() == 0 { missing_keys.push("cid"); }
 
         let valid = missing_keys.is_empty();
         eprintln!("({}) is valid? {:?} (missing {:?})", self.index, valid, missing_keys);
         valid
+    }
+
+    fn valid_birth_year(&self) -> bool {
+        match self.birth_year.parse::<usize>() {
+            Ok(i) => i >= 1920 && i <= 2002,
+            Err(_) => false,
+        }
+    }
+
+    fn valid_issue_year(&self) -> bool {
+        match self.issue_year.parse::<usize>() {
+            Ok(i) => i >= 2010 && i <= 2020,
+            Err(_) => false,
+        }
+    }
+
+    fn valid_expire_year(&self) -> bool {
+        match self.expire_year.parse::<usize>() {
+            Ok(i) => i >= 2020 && i <= 2030,
+            Err(_) => false,
+        }
+    }
+
+    fn valid_height(&self) -> bool {
+        let matcher = Regex::new(r"^(?P<num>\d+)(?P<unit>cm|in)$").unwrap();
+        match matcher.captures(&self.height) {
+            None => false,
+            Some(c) => {
+                let num = c.name("num").unwrap().as_str().parse::<usize>().unwrap();
+                match c.name("unit").unwrap().as_str() {
+                    "cm" => num >=150 && num <= 193,
+                    "in" => num >= 59 && num <= 76,
+                    _ => false,
+                }
+            }
+        }
+    }
+
+    fn valid_hair_color(&self) -> bool {
+        let matcher = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
+        matcher.is_match(&self.hair_color)
+    }
+
+    fn valid_eye_color(&self) -> bool {
+        let mut valid_colors = HashSet::new();
+        valid_colors.insert("amb".to_string());
+        valid_colors.insert("blu".to_string());
+        valid_colors.insert("brn".to_string());
+        valid_colors.insert("gry".to_string());
+        valid_colors.insert("grn".to_string());
+        valid_colors.insert("hzl".to_string());
+        valid_colors.insert("oth".to_string());
+
+        let value = valid_colors.contains(&self.eye_color);
+        // eprintln!("{:?} contains {}? {}", valid_colors, self.eye_color, value);
+        value
+    }
+
+    fn valid_passport_id(&self) -> bool {
+        let matcher = Regex::new(r"^\d{9}$").unwrap();
+        matcher.is_match(&self.passport_id)
     }
 }
 
