@@ -4,7 +4,6 @@ use std::io;
 use std::fs;
 use std::io::BufRead;
 use std::path::Path;
-use std::fmt;
 
 fn main() {
     let input = parse_input();
