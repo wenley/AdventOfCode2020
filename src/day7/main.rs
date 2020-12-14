@@ -15,46 +15,32 @@ use petgraph::{
 fn main() {
     let input = parse_input();
 
-    println!("{:?}", input.rules[0]);
-    traverse_shiny_gold(input.rules);
+    traverse_shiny_gold(&input);
+    shiny_gold_definite_contents(&input);
 }
 
-fn rule_set(rules: &Vec<Rule>) -> HashMap<Bag, Vec<Bag>> {
-    let mut map: HashMap<Bag, Vec<Bag>> = HashMap::new();
-    for rule in rules {
-        for content in rule.contents.iter() {
-            if map.contains_key(&content.bag) {
-                map.get_mut(&content.bag).unwrap().push(rule.bag.clone());
-            } else {
-                map.insert(content.bag.clone(), vec![rule.bag.clone()]);
-            }
-        }
-    }
-    map
-}
-
-fn traverse_shiny_gold(rules: Vec<Rule>) {
+fn traverse_shiny_gold(rules: &InputData) {
     // Edge A to B = A contained by B
     let mut contained_by_graph = Graph::<Bag, ()>::new();
     let mut bag_to_index = HashMap::new();
     let mut index_to_bag = HashMap::new();
 
-    for rule in rules {
-        let bag = rule.bag.clone();
+    for (bag, contents) in rules.rules.iter() {
+        let bag = bag.clone();
         if !bag_to_index.contains_key(&bag) {
-            let index = contained_by_graph.add_node(rule.bag.clone());
-            bag_to_index.insert(rule.bag.clone(), index);
-            index_to_bag.insert(index, rule.bag.clone());
+            let index = contained_by_graph.add_node(bag.clone());
+            bag_to_index.insert(bag.clone(), index);
+            index_to_bag.insert(index, bag.clone());
         }
 
-        for content in rule.contents {
+        for content in contents {
             if !bag_to_index.contains_key(&content.bag) {
                 let index = contained_by_graph.add_node(content.bag.clone());
                 bag_to_index.insert(content.bag.clone(), index);
                 index_to_bag.insert(index, content.bag.clone());
             }
             let inner_bag_index = bag_to_index.get(&content.bag).unwrap();
-            let outer_bag_index = bag_to_index.get(&rule.bag).unwrap();
+            let outer_bag_index = bag_to_index.get(&bag).unwrap();
             contained_by_graph.add_edge(*inner_bag_index, *outer_bag_index, ());
         }
     }
@@ -64,12 +50,38 @@ fn traverse_shiny_gold(rules: Vec<Rule>) {
 
     let mut bfs_search = Bfs::new(&contained_by_graph, *shiny_gold_index);
     let mut count = 0;
-    while let Some(nx) = bfs_search.next(&contained_by_graph) {
-        println!("Found {:?}", index_to_bag.get(&nx).unwrap());
+    while let Some(_) = bfs_search.next(&contained_by_graph) {
         count += 1;
     }
 
     println!("Traversed {} nodes", count);
+}
+
+fn shiny_gold_definite_contents(rules: &InputData) {
+    let mut previously_computed: HashMap<Bag, usize> = HashMap::new();
+    let shiny_gold_bag = Bag { adjective: "shiny".to_string(), color: "gold".to_string() };
+    let count = definite_contents(&shiny_gold_bag, rules, &mut previously_computed);
+    println!("1 Shiny Gold bag must contain {} other bags", count);
+}
+
+// Does NOT include the bag itself
+fn definite_contents(bag: &Bag, rules: &InputData, previously_computed: &mut HashMap<Bag, usize>) -> usize {
+    match previously_computed.get(bag) {
+        Some(count) => *count,
+        None => {
+            match rules.rules.get(bag) {
+                None => panic!("Unknown bag type {:?}", bag),
+                Some(contents) => {
+                    let mut count = 0;
+                    for content in contents.iter() {
+                        count += content.count * (1 + definite_contents(&content.bag, rules, previously_computed));
+                    }
+                    previously_computed.insert(bag.clone(), count);
+                    count
+                }
+            }
+        },
+    }
 }
 
 #[derive(Debug, Eq, Hash, Clone)]
@@ -89,14 +101,8 @@ struct Content {
     bag: Bag,
 }
 
-#[derive(Debug)]
-struct Rule {
-    bag: Bag,
-    contents: Vec<Content>,
-}
-
 struct InputData {
-    rules: Vec<Rule>,
+    rules: HashMap<Bag, Vec<Content>>,
 }
 
 fn parse_input() -> InputData {
@@ -132,13 +138,13 @@ fn parse_input() -> InputData {
                             }).collect()
                         };
 
-                        Rule {
-                            bag: Bag {
+                        (
+                            Bag {
                                 adjective: captures.name("adj").unwrap().as_str().to_string(),
                                 color: captures.name("color").unwrap().as_str().to_string(),
                             },
-                            contents: contents,
-                        }
+                            contents,
+                        )
                     },
                     Err(_) => panic!("Error reading line"),
                 }
