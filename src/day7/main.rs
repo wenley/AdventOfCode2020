@@ -4,6 +4,8 @@ use std::io;
 use std::fs;
 use std::io::BufRead;
 use std::path::Path;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use regex::Regex;
 
 fn main() {
@@ -12,17 +14,53 @@ fn main() {
     println!("{:?}", input.rules[0]);
 }
 
+fn rule_set(rules: Vec<Rule>) -> HashMap<Bag, Vec<Vec<Content>>> {
+    let mut map: HashMap<Bag, Vec<Vec<Content>>> = HashMap::new();
+    for rule in rules {
+        if map.contains_key(&rule.bag) {
+            map.get_mut(&rule.bag).unwrap().push(rule.contents);
+        } else {
+            map.insert(rule.bag, vec![rule.contents]);
+        }
+    }
+    map
+}
+
+fn traverse_shiny_gold(rules: Vec<Rule>) {
+    let mut found_bags: HashSet<Bag> = HashSet::new();
+    let mut bags_to_explore: HashSet<Bag> = HashSet::new();
+    let mut next_bags_to_explore: HashSet<Bag> = HashSet::new();
+    bags_to_explore.insert(Bag { adjective: "shiny".to_string(), color: "gold".to_string() });
+
+    while !bags_to_explore.is_empty() {
+        bags_to_explore.iter().for_each(|bag| {
+        });
+
+        bags_to_explore = next_bags_to_explore;
+        next_bags_to_explore = HashSet::new();
+    }
+}
+
+#[derive(Debug, Eq, Hash)]
+struct Bag {
+    adjective: String,
+    color: String,
+}
+impl PartialEq for Bag {
+    fn eq(&self, other: &Self) -> bool {
+        self.adjective == other.adjective && self.color == other.color
+    }
+}
+
 #[derive(Debug)]
 struct Content {
     count: usize,
-    adjective: String,
-    color: String,
+    bag: Bag,
 }
 
 #[derive(Debug)]
 struct Rule {
-    adjective: String,
-    color: String,
+    bag: Bag,
     contents: Vec<Content>,
 }
 
@@ -55,15 +93,19 @@ fn parse_input() -> InputData {
 
                                 Content {
                                     count: content_capture.name("count").unwrap().as_str().parse().unwrap(),
-                                    adjective: content_capture.name("adj").unwrap().as_str().to_string(),
-                                    color: content_capture.name("color").unwrap().as_str().to_string(),
+                                    bag: Bag {
+                                        adjective: content_capture.name("adj").unwrap().as_str().to_string(),
+                                        color: content_capture.name("color").unwrap().as_str().to_string(),
+                                    },
                                 }
                             }).collect()
                         };
 
                         Rule {
-                            adjective: captures.name("adj").unwrap().as_str().to_string(),
-                            color: captures.name("color").unwrap().as_str().to_string(),
+                            bag: Bag {
+                                adjective: captures.name("adj").unwrap().as_str().to_string(),
+                                color: captures.name("color").unwrap().as_str().to_string(),
+                            },
                             contents: contents,
                         }
                     },
