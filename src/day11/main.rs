@@ -9,25 +9,37 @@ fn main() {
     let input = parse_input();
 }
 
-struct InputData {
-    rows: Vec<String>,
+enum Spot {
+    Floor,
+    Empty,
+    Occupied,
 }
 
-impl InputData {
+struct Ferry {
+    spots: Vec<Vec<Spot>>,
+}
+
+struct InputData {
+    ferry: Ferry,
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day3input.txt");
+    let io_result = lines_in_file("day11input.txt");
     match io_result {
         Ok(lines) => {
-            let rows = lines.map(|line| match line {
+            let spots = lines.map(|line| match line {
                 Ok(stuff) => {
-                    stuff
+                    stuff.chars().map(|c| match c {
+                        '.' => Spot::Floor,
+                        'L' => Spot::Empty,
+                        '#' => Spot::Occupied,
+                        _ => panic!("Unknown char {}", c),
+                    }).collect()
                 }
                 Err(_) => panic!("Error reading line"),
             }).collect();
             InputData {
-                rows: rows,
+                ferry: Ferry { spots: spots },
             }
         },
         Err(_) => panic!("Error reading file"),
