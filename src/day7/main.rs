@@ -1,17 +1,22 @@
 extern crate regex;
+extern crate petgraph;
 
 use std::io;
 use std::fs;
 use std::io::BufRead;
 use std::path::Path;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use regex::Regex;
+use petgraph::{
+    Graph,
+    visit::Bfs,
+};
 
 fn main() {
     let input = parse_input();
 
     println!("{:?}", input.rules[0]);
+    traverse_shiny_gold(input.rules);
 }
 
 fn rule_set(rules: &Vec<Rule>) -> HashMap<Bag, Vec<Bag>> {
@@ -29,18 +34,42 @@ fn rule_set(rules: &Vec<Rule>) -> HashMap<Bag, Vec<Bag>> {
 }
 
 fn traverse_shiny_gold(rules: Vec<Rule>) {
-    let mut found_bags: HashSet<Bag> = HashSet::new();
-    let mut bags_to_explore: HashSet<Bag> = HashSet::new();
-    let mut next_bags_to_explore: HashSet<Bag> = HashSet::new();
-    bags_to_explore.insert(Bag { adjective: "shiny".to_string(), color: "gold".to_string() });
+    // Edge A to B = A contained by B
+    let mut contained_by_graph = Graph::<Bag, ()>::new();
+    let mut bag_to_index = HashMap::new();
+    let mut index_to_bag = HashMap::new();
 
-    while !bags_to_explore.is_empty() {
-        bags_to_explore.iter().for_each(|bag| {
-        });
+    for rule in rules {
+        let bag = rule.bag.clone();
+        if !bag_to_index.contains_key(&bag) {
+            let index = contained_by_graph.add_node(rule.bag.clone());
+            bag_to_index.insert(rule.bag.clone(), index);
+            index_to_bag.insert(index, rule.bag.clone());
+        }
 
-        bags_to_explore = next_bags_to_explore;
-        next_bags_to_explore = HashSet::new();
+        for content in rule.contents {
+            if !bag_to_index.contains_key(&content.bag) {
+                let index = contained_by_graph.add_node(content.bag.clone());
+                bag_to_index.insert(content.bag.clone(), index);
+                index_to_bag.insert(index, content.bag.clone());
+            }
+            let inner_bag_index = bag_to_index.get(&content.bag).unwrap();
+            let outer_bag_index = bag_to_index.get(&rule.bag).unwrap();
+            contained_by_graph.add_edge(*inner_bag_index, *outer_bag_index, ());
+        }
     }
+
+    let shiny_gold_bag = Bag { adjective: "shiny".to_string(), color: "gold".to_string() };
+    let shiny_gold_index = bag_to_index.get(&shiny_gold_bag).unwrap();
+
+    let mut bfs_search = Bfs::new(&contained_by_graph, *shiny_gold_index);
+    let mut count = 0;
+    while let Some(nx) = bfs_search.next(&contained_by_graph) {
+        println!("Found {:?}", index_to_bag.get(&nx).unwrap());
+        count += 1;
+    }
+
+    println!("Traversed {} nodes", count);
 }
 
 #[derive(Debug, Eq, Hash, Clone)]

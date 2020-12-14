@@ -44,3 +44,4 @@ path = "src/day7/main.rs"
 
 [dependencies]
 regex = "1"
+petgraph = "0.4"
