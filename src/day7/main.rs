@@ -14,13 +14,15 @@ fn main() {
     println!("{:?}", input.rules[0]);
 }
 
-fn rule_set(rules: Vec<Rule>) -> HashMap<Bag, Vec<Vec<Content>>> {
-    let mut map: HashMap<Bag, Vec<Vec<Content>>> = HashMap::new();
+fn rule_set(rules: &Vec<Rule>) -> HashMap<Bag, Vec<Bag>> {
+    let mut map: HashMap<Bag, Vec<Bag>> = HashMap::new();
     for rule in rules {
-        if map.contains_key(&rule.bag) {
-            map.get_mut(&rule.bag).unwrap().push(rule.contents);
-        } else {
-            map.insert(rule.bag, vec![rule.contents]);
+        for content in rule.contents.iter() {
+            if map.contains_key(&content.bag) {
+                map.get_mut(&content.bag).unwrap().push(rule.bag.clone());
+            } else {
+                map.insert(content.bag.clone(), vec![rule.bag.clone()]);
+            }
         }
     }
     map
@@ -41,7 +43,7 @@ fn traverse_shiny_gold(rules: Vec<Rule>) {
     }
 }
 
-#[derive(Debug, Eq, Hash)]
+#[derive(Debug, Eq, Hash, Clone)]
 struct Bag {
     adjective: String,
     color: String,
