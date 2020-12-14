@@ -87,17 +87,6 @@ impl Ferry {
         }
     }
 
-    fn get(&self, row: i64, col: i64) -> Spot {
-        if row < 0 || row >= self.spots.len() as i64 {
-            return Spot::Empty;
-        }
-        let spot_row = &self.spots[row as usize];
-        if col < 0 || col >= spot_row.len() as i64 {
-            return Spot::Empty;
-        }
-        spot_row[col as usize]
-    }
-
     fn get_inbounds(&self, row: i64, col: i64) -> Option<Spot> {
         if row < 0 || row >= self.spots.len() as i64 {
             return None;
