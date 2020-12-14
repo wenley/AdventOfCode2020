@@ -4,7 +4,6 @@ use std::io;
 use std::fs;
 use std::io::BufRead;
 use std::path::Path;
-use std::fmt;
 use std::collections::HashSet;
 
 fn main() {
@@ -15,7 +14,7 @@ fn main() {
     let min = input.taken_seats.iter().min().unwrap();
     let max = input.taken_seats.iter().max().unwrap();
     println!("Max seat is {}", max);
-    for i in (*min..*max) {
+    for i in *min..*max {
         if !input.taken_seats.contains(&i) {
             println!("My seat is {}", i);
             break;

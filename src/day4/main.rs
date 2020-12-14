@@ -35,7 +35,7 @@ struct Passport {
     hair_color: String,
     eye_color: String,
     passport_id: String,
-    country_id: String,
+    _country_id: String,
 }
 
 struct InputData {
@@ -53,7 +53,7 @@ impl Passport {
             hair_color: data.get("hcl").map(|s| s.to_string()).unwrap_or("".to_string()),
             eye_color: data.get("ecl").map(|s| s.to_string()).unwrap_or("".to_string()),
             passport_id: data.get("pid").map(|s| s.to_string()).unwrap_or("".to_string()),
-            country_id: data.get("cid").map(|s| s.to_string()).unwrap_or("".to_string()),
+            _country_id: data.get("cid").map(|s| s.to_string()).unwrap_or("".to_string()),
         }
     }
 
