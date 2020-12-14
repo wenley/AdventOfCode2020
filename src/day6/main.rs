@@ -8,15 +8,25 @@ use std::collections::HashSet;
 
 fn main() {
     let input = parse_input();
-    let total: usize = input.groups.iter().map(|g| g.answers.len()).sum();
-    println!("{}", total);
-    let nth = input.groups.iter().nth(6).unwrap();
-    println!("First: {}", nth.answers.len());
-    println!("{:?}", nth.answers);
+    let total_a: usize = input.groups.iter().map(|g| {
+        let mut answers = g.answers.clone();
+        let first = answers.pop().unwrap();
+        answers.iter().fold(first, |acc, item| acc.union(item).map(|c| *c).collect()).len()
+    }).sum();
+    let total_b: usize = input.groups.iter().map(|g| {
+        let mut answers = g.answers.clone();
+        let first = answers.pop().unwrap();
+        answers.iter().fold(first, |acc, item| acc.intersection(item).map(|c| *c).collect()).len()
+    }).sum();
+    println!("Part 1: {}", total_a);
+    println!("Part 2: {}", total_b);
+    // let nth = input.groups.iter().nth(6).unwrap();
+    // println!("First: {}", nth.answers.len());
+    // println!("{:?}", nth.answers);
 }
 
 struct Group {
-    answers: HashSet<char>,
+    answers: Vec<HashSet<char>>,
 }
 
 struct InputData {
@@ -28,18 +38,16 @@ fn parse_input() -> InputData {
 
     match io_result {
         Ok(lines) => {
-            let mut answers = HashSet::new();
+            let mut answers = vec![];
             let mut groups = vec![];
             for line in lines {
                 match line {
                     Ok(stuff) => {
                         if stuff.len() <= 0 { // Newlines??
                             groups.push(Group { answers: answers });
-                            answers = HashSet::new();
+                            answers = vec![];
                         } else {
-                            for c in stuff.chars() {
-                                answers.insert(c);
-                            }
+                            answers.push(stuff.chars().collect());
                         }
                     },
                     Err(_) => panic!("Error reading line"),
