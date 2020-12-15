@@ -22,7 +22,7 @@ fn main() {
                 value,
             }) => {
                 if let Some(m) = mask {
-                    let masked_value = (value & m.zeros_to_and) | m.ones_to_or;
+                    let masked_value = m.mask_value(value);
                     memory.insert(*index, masked_value);
                 } else {
                     panic!("No mask! Row {}", i);
@@ -31,6 +31,7 @@ fn main() {
         }
     }
 
+    // 16003257187056
     println!("Final sum of values = {}", memory.values().fold(0, |acc, num| acc + num));
 }
 
@@ -38,9 +39,30 @@ struct InputData {
     instructions: Vec<Instruction>,
 }
 
+enum Bit {
+    Zero,
+    One,
+    Float,
+}
 struct Mask {
-    zeros_to_and: u64,
-    ones_to_or: u64,
+    bits: Vec<Bit>,
+}
+impl Mask {
+    fn mask_value(&self, value: &u64) -> u64 {
+        let mut zeros_to_and = 1;
+        let mut ones_to_or = 0;
+        for bit in self.bits.iter() {
+            zeros_to_and = zeros_to_and << 1;
+            ones_to_or = ones_to_or << 1;
+            match bit {
+                Bit::Float => { zeros_to_and += 1; }
+                Bit::One => { ones_to_or += 1; zeros_to_and += 1 }
+                Bit::Zero => { }
+            }
+        }
+
+        (value & zeros_to_and) | ones_to_or
+    }
 }
 struct Assign {
     index: usize,
@@ -54,22 +76,15 @@ enum Instruction {
 use Instruction::*;
 
 fn parse_mask(s: &str) -> Mask {
-    let mut zeros_to_and = 1;
-    let mut ones_to_or = 0;
-    for c in s.chars() {
-        zeros_to_and = zeros_to_and << 1;
-        ones_to_or = ones_to_or << 1;
-        match c {
-            'X' => { zeros_to_and += 1; }
-            '1' => { ones_to_or += 1; zeros_to_and += 1 }
-            '0' => { }
-            _ => panic!("Unknown char {}", c),
-        }
-    }
-
     Mask {
-        zeros_to_and: zeros_to_and,
-        ones_to_or: ones_to_or,
+        bits: s.chars().map(|c| {
+            match c {
+                'X' => Bit::Float,
+                '1' => Bit::One,
+                '0' => Bit::Zero,
+                _ => panic!("Unknown char {}", c),
+            }
+        }).collect(),
     }
 }
 
