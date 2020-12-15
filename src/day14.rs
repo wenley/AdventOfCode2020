@@ -12,6 +12,8 @@ fn main() {
     let input = parse_input();
     let instructions = input.instructions;
 
+    let set = vec![4, 2, 1];
+    println!("Power set of {:?} = {:?}", set, power_set_of_bits(&set));
     part_1(&instructions);
     part_2(&instructions);
 }
@@ -126,7 +128,7 @@ fn power_set_of_bits(bits: &Vec<usize>) -> Vec<usize> {
         flat_map(|subset_size| {
             bits.iter().combinations(subset_size).collect::<Vec<_>>()
         }).
-        map(|nums: Vec<_>| nums.iter().fold(1, |acc, num| acc | **num)).
+        map(|nums: Vec<_>| nums.iter().fold(0, |acc, num| acc | **num)).
         collect()
 }
 
