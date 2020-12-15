@@ -8,78 +8,58 @@ use std::path::Path;
 fn main() {
     let input = parse_input();
     let buses = input.buses;
-    let rules = buses.
+    let mut rules: Vec<Rule> = buses.
         iter().
-        filter(|b| **b == Constraint::Blank).
         enumerate().
         map(|(i, b)| {
             match b {
                 Constraint::Bus(num) => {
-                    let p = *num as i64;
+                    let p = *num as u64;
+                    let i = i as u64;
+                    let remainder = (p - (i % p)) % p;
+                    println!("x + {} === 0 mod {}", i, p);
+                    println!("x === {} mod {}", remainder, p);
                     Rule {
-                        remainder: -(i as i64) % p,
+                        remainder: remainder,
                         modulo: p,
                     }
                 }
-                Constraint::Blank => panic!("Filter didn't work"),
+                Constraint::Blank => Rule { remainder: 0, modulo: 1 },
             }
-        });
+        }).
+        collect();
+    // Make them ascending to sieve from the back;
+    rules.sort_by_key(|r| r.modulo);
 
-    println!("{:?}", euclid(27, 20));
-}
-
-/*
- * function extended_gcd(a, b)
-    (old_r, r) := (a, b)
-    (old_s, s) := (1, 0)
-    (old_t, t) := (0, 1)
-
-    while r ≠ 0 do
-        quotient := old_r div r
-        (old_r, r) := (r, old_r − quotient × r)
-        (old_s, s) := (s, old_s − quotient × s)
-        (old_t, t) := (t, old_t − quotient × t)
-
-    output "Bézout coefficients:", (old_s, old_t)
-    output "greatest common divisor:", old_r
-    output "quotients by the gcd:", (t, s)
- */
-fn euclid(n1: i64, n2: i64) -> (i64, i64) {
-    if n1 < n2 { panic!("n1 must be at least n2"); }
-
-    let (mut old_r, mut r) = (n1, n2);
-    let (mut old_s, mut s) = (1, 0);
-    let (mut old_t, mut t) = (0, 1);
-
-    while r != 0 {
-        let quotient = old_r / r;
-        let (new_r, new_s, new_t) = (
-            old_r - quotient * r,
-            old_s - quotient * s,
-            old_t - quotient * t,
-        );
-        old_r = r;
-        r = new_r;
-        old_s = s;
-        s = new_s;
-        old_t = t;
-        t = new_t;
+    let mut rule = Rule { remainder: 0, modulo: 1 };
+    while let Some(next_rule) = rules.pop() {
+        println!("Coalescing {:?} and {:?}", rule, next_rule);
+        rule = rule.merge(&next_rule);
+        println!("Found partial solution: {:?}", rule);
     }
 
-    (old_s, old_t)
+    println!("{:?}", rule);
 }
 
+#[derive(Debug)]
 struct Rule {
-    remainder: i64,
-    modulo: i64,
+    remainder: u64,
+    modulo: u64,
 }
-
 impl Rule {
+    fn matches(&self, x: &u64) -> bool {
+        x % self.modulo == self.remainder
+    }
+
     fn merge(&self, other: &Rule) -> Rule {
-        if self.modulo >= other.modulo {
-            let (m1, m2) = euclid(self.modulo, other.modulo);
-        } else {
-            let (m2, m1) = euclid(self.modulo, other.modulo);
+        if self.modulo < other.modulo { return other.merge(self) }
+
+        let new_modulo = self.modulo * other.modulo;
+        let new_remainder = (self.remainder..).step_by(self.modulo as usize).filter(|i| other.matches(i)).nth(0).unwrap() % new_modulo;
+
+        Rule {
+            remainder: new_remainder,
+            modulo: new_modulo,
         }
     }
 }
