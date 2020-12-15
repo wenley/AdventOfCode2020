@@ -6,11 +6,17 @@ use std::io::BufRead;
 use std::path::Path;
 use std::collections::HashMap;
 use regex::Regex;
+use itertools::Itertools;
 
 fn main() {
     let input = parse_input();
     let instructions = input.instructions;
 
+    part_1(&instructions);
+    part_2(&instructions);
+}
+
+fn part_1(instructions: &Vec<Instruction>) {
     let mut mask = None;
     let mut memory: HashMap<usize, u64> = HashMap::new();
 
@@ -24,6 +30,32 @@ fn main() {
                 if let Some(m) = mask {
                     let masked_value = m.mask_value(value);
                     memory.insert(*index, masked_value);
+                } else {
+                    panic!("No mask! Row {}", i);
+                }
+            }
+        }
+    }
+
+    // 16003257187056
+    println!("Final sum of values = {}", memory.values().fold(0, |acc, num| acc + num));
+}
+
+fn part_2(instructions: &Vec<Instruction>) {
+    let mut mask = None;
+    let mut memory: HashMap<usize, u64> = HashMap::new();
+
+    for (i, instruction) in instructions.iter().enumerate() {
+        match instruction {
+            UpdateMask(m) => { mask = Some(m); }
+            Execute(Assign {
+                index,
+                value,
+            }) => {
+                if let Some(m) = mask {
+                    for masked_index in m.masked_indexes(index) {
+                        memory.insert(masked_index, *value);
+                    }
                 } else {
                     panic!("No mask! Row {}", i);
                 }
@@ -63,7 +95,41 @@ impl Mask {
 
         (value & zeros_to_and) | ones_to_or
     }
+
+    fn masked_indexes(&self, index: &usize) -> Vec<usize> {
+        let mut zeros_to_and = 1;
+        let mut ones_to_or = 0;
+        let mut floats_to_power_set = vec![];
+
+        for bit in self.bits.iter() {
+            zeros_to_and = zeros_to_and << 1;
+            ones_to_or = ones_to_or << 1;
+            floats_to_power_set = floats_to_power_set.iter().map(|i| i << 1).collect();
+
+            match bit {
+                Bit::Float => { floats_to_power_set.push(1); }
+                Bit::One => { ones_to_or += 1; zeros_to_and += 1 }
+                Bit::Zero => { zeros_to_and += 1; }
+            }
+        }
+        let base_index = (index & zeros_to_and) | ones_to_or;
+
+        power_set_of_bits(&floats_to_power_set).
+            iter().
+            map(|mask| mask | base_index).
+            collect()
+    }
 }
+
+fn power_set_of_bits(bits: &Vec<usize>) -> Vec<usize> {
+    (0..=bits.len()).
+        flat_map(|subset_size| {
+            bits.iter().combinations(subset_size).collect::<Vec<_>>()
+        }).
+        map(|nums: Vec<_>| nums.iter().fold(1, |acc, num| acc | **num)).
+        collect()
+}
+
 struct Assign {
     index: usize,
     value: u64,
