@@ -46,7 +46,7 @@ fn line_to_seat_number(line: &str) -> usize {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day5input.txt");
+    let io_result = lines_in_file("input/day5.txt");
     match io_result {
         Ok(lines) => {
             let taken_seats = lines.map(|line| match line {

@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::collections::HashMap;
 
 fn main() {
-    let io_result = lines_in_file("day1input.txt");
+    let io_result = lines_in_file("input/day1.txt");
     let mut numbers = HashSet::new();
     let mut sum_to_pair = HashMap::new();
     match io_result {

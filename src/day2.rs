@@ -7,7 +7,7 @@ use std::path::Path;
 use regex::Regex;
 
 fn main() {
-    let io_result = lines_in_file("day2input.txt");
+    let io_result = lines_in_file("input/day2.txt");
     match io_result {
         Ok(lines) => {
             let mut valid_rows = 0;

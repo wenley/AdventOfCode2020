@@ -142,7 +142,7 @@ impl InputData {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day4input.txt");
+    let io_result = lines_in_file("input/day4.txt");
     let part_split = Regex::new(r"^(?P<label>[a-z]+):(?P<value>\S+)$").unwrap();
 
     match io_result {

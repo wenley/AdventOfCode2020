@@ -90,7 +90,7 @@ impl Window {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day9input.txt");
+    let io_result = lines_in_file("input/day9.txt");
     match io_result {
         Ok(lines) => {
             let rows = lines.map(|line| match line {

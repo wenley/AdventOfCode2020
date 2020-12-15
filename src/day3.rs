@@ -55,7 +55,7 @@ impl InputData {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day3input.txt");
+    let io_result = lines_in_file("input/day3.txt");
     match io_result {
         Ok(lines) => {
             InputData {

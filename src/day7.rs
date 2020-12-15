@@ -106,7 +106,7 @@ struct InputData {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day7input.txt");
+    let io_result = lines_in_file("input/day7.txt");
     let sentence_split = Regex::new(r"^(?P<adj>[a-z]+) (?P<color>[a-z]+) bags contain (?P<contents>[^.]+).$").unwrap();
     let contents_split = Regex::new(r"^(?P<count>\d+) (?P<adj>[a-z]+) (?P<color>[a-z]+) bags?$").unwrap();
 

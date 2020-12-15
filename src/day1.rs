@@ -5,7 +5,7 @@ use std::path::Path;
 use std::collections::HashSet;
 
 fn main() {
-    let io_result = lines_in_file("day1input.txt");
+    let io_result = lines_in_file("input/day1.txt");
     let mut numbers = HashSet::new();
     match io_result {
         Ok(lines) => {

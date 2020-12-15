@@ -104,7 +104,7 @@ struct InputData {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day11input.txt");
+    let io_result = lines_in_file("input/day11.txt");
     match io_result {
         Ok(lines) => {
             let spots = lines.map(|line| match line {

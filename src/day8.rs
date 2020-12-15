@@ -138,7 +138,7 @@ impl Program {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day8input.txt");
+    let io_result = lines_in_file("input/day8.txt");
     let instruction_regex = Regex::new(r"^(?P<op>acc|jmp|nop) (?P<num>(\+|-)\d+)$").unwrap();
     match io_result {
         Ok(lines) => {

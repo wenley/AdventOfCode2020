@@ -106,7 +106,7 @@ impl Position {
 }
 
 fn parse_input() -> InputData {
-    let io_result = lines_in_file("day12input.txt");
+    let io_result = lines_in_file("input/day12.txt");
     let instruction_regex = Regex::new(r"^(?P<code>[NSEWLRF])(?P<amount>\d+)$").unwrap();
 
     match io_result {
