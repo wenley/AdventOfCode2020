@@ -74,6 +74,10 @@ path = "src/day12b.rs"
 name = "day13"
 path = "src/day13.rs"
 
+[[bin]]
+name = "day13b"
+path = "src/day13b.rs"
+
 [dependencies]
 regex = "1"
 petgraph = "0.4"
