@@ -18,7 +18,6 @@ fn main() {
 
 #[derive(PartialEq, Clone, Copy)]
 enum Cell {
-    Dead,
     Alive,
 }
 

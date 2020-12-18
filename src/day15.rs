@@ -1,9 +1,5 @@
 extern crate regex;
 
-use std::io;
-use std::fs;
-use std::io::BufRead;
-use std::path::Path;
 use std::collections::HashMap;
 
 fn main() {
@@ -29,12 +25,5 @@ fn main() {
         turn += 1;
     }
     println!("{} spoken on turn {}", last_number, turn);
-}
-
-struct InputData {
-    rows: Vec<String>,
-}
-
-impl InputData {
 }
 

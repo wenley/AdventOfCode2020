@@ -35,7 +35,7 @@ fn main() {
     while rules.len() > 0 {
         let mut solved_indexes = HashMap::new();
         index_to_values.iter().for_each(|(index, values)| {
-            let mut candidates: Vec<_> = rules.iter().filter(|(name, rule)| {
+            let mut candidates: Vec<_> = rules.iter().filter(|(_, rule)| {
                 values.iter().all(|v| rule.is_valid_value(v))
             }).map(|(name, _)| name).collect();
 
@@ -147,7 +147,6 @@ fn parse_input() -> InputData {
                                 _ => { tickets.push(parse_ticket(&stuff)); }
                             }
                         }
-                        _ => {}
                     }
                 }
                 Err(_) => panic!("Error reading line"),
