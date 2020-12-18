@@ -18,6 +18,7 @@ use nom::{
 fn main() {
     let input = parse_input();
     println!("Total = {}", input.equations.iter().map(|eq| eq.evaluate()).sum::<usize>());
+    println!("Total 2 = {}", input.equations.iter().map(|eq| eq.evaluate2()).sum::<usize>());
 }
 
 struct InputData {
@@ -33,6 +34,13 @@ impl Value {
         match self {
             Value::Literal(v) => *v,
             Value::Paren(b) => b.evaluate(),
+        }
+    }
+
+    fn evaluate2(&self) -> usize {
+        match self {
+            Value::Literal(v) => *v,
+            Value::Paren(b) => b.evaluate2(),
         }
     }
 }
@@ -53,6 +61,28 @@ impl Equation {
                 MathPart::Multiply(v) => acc * v.evaluate(),
             }
         })
+    }
+
+    fn evaluate2(&self) -> usize {
+        let mut numbers_to_multiply = vec![];
+        let mut cache = None;
+        self.parts.iter().for_each(|part| {
+            match (cache, part) {
+                (None, MathPart::Add(v)) => { cache = Some(v.evaluate2()); }
+                (None, MathPart::Multiply(v)) => panic!("Weird?"),
+                (Some(num), MathPart::Add(v)) => { cache = Some(num + v.evaluate2()); }
+                (Some(num), MathPart::Multiply(v)) => {
+                    numbers_to_multiply.push(num);
+                    cache = Some(v.evaluate2());
+                }
+            }
+        });
+        match cache {
+            None => {},
+            Some(num) => { numbers_to_multiply.push(num); }
+        }
+
+        numbers_to_multiply.iter().fold(1, |acc, num| acc * num)
     }
 }
 
