@@ -43,12 +43,11 @@ enum MathPart {
 }
 
 struct Equation {
-    first: Value,
-    rest: Vec<MathPart>,
+    parts: Vec<MathPart>,
 }
 impl Equation {
     fn evaluate(&self) -> usize {
-        self.rest.iter().fold(self.first.evaluate(), |acc, part| {
+        self.parts.iter().fold(0, |acc, part| {
             match part {
                 MathPart::Add(v) => acc + v.evaluate(),
                 MathPart::Multiply(v) => acc * v.evaluate(),
@@ -91,12 +90,12 @@ fn parse_line(s: &str) -> IResult<&str, Equation> {
 }
 fn parse_equation(s: &str) -> IResult<&str, Equation> {
     let (s, first) = parse_value(s)?;
-    let (s, rest) = many0(preceded(space0, parse_math_part))(s)?;
+    let (s, mut parts) = many0(preceded(space0, parse_math_part))(s)?;
 
-    Ok((s, Equation {
-        first: first,
-        rest: rest,
-    }))
+    let mut all_parts = vec![MathPart::Add(first)];
+    all_parts.append(&mut parts);
+
+    Ok((s, Equation { parts: all_parts }))
 }
 
 /*
