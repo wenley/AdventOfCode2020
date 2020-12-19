@@ -69,7 +69,7 @@ impl Equation {
         self.parts.iter().for_each(|part| {
             match (cache, part) {
                 (None, MathPart::Add(v)) => { cache = Some(v.evaluate2()); }
-                (None, MathPart::Multiply(v)) => panic!("Weird?"),
+                (None, MathPart::Multiply(_)) => panic!("Weird?"),
                 (Some(num), MathPart::Add(v)) => { cache = Some(num + v.evaluate2()); }
                 (Some(num), MathPart::Multiply(v)) => {
                     numbers_to_multiply.push(num);
