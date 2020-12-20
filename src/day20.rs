@@ -13,7 +13,7 @@ fn main() {
     let tile_to_unique_edge_count = input.tile_to_unique_edge_count();
     let corner_tiles: Vec<_> = input.corner_tiles(&tile_to_unique_edge_count);
 
-    println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * **i));
+    println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * *i));
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
@@ -66,6 +66,7 @@ enum EdgeAlignment {
 
 #[derive(Hash, Debug, Clone)]
 struct Tile {
+    identifier: usize,
     pixels: Vec<Vec<Pixel>>,
 }
 enum TileEdge {
@@ -125,6 +126,7 @@ impl Tile {
 
     fn rotate_right(&self) -> Tile {
         Tile {
+            identifier: self.identifier,
             pixels: (0..self.pixels.len()).map(|new_row| {
                 self.col(new_row).iter().rev().map(|p| *p).collect()
             }).collect(),
@@ -132,6 +134,7 @@ impl Tile {
     }
     fn flip(&self) -> Tile {
         Tile {
+            identifier: self.identifier,
             pixels: self.pixels.
                 iter().
                 map(|row| row.iter().rev().map(|p| *p).collect()).
@@ -234,7 +237,7 @@ fn parse_input() -> io::Result<InputData> {
             }).collect::<Vec<_>>()
         }).filter(|v| v.len() > 0).collect();
 
-        (identifier, Tile { pixels: pixels })
+        (identifier, Tile { identifier: identifier, pixels: pixels })
     }).collect();
 
     Ok(InputData {
