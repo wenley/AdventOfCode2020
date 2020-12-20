@@ -38,6 +38,10 @@ fn main() {
         tile_to_unique_edge_count.insert(tile.identifier, unique_edges);
     });
 
+    let corner_tiles: Vec<_> = tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
+        **unique_edges >= 2
+    }).map(|(id, _)| id).collect();
+    println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * **i));
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,7 +78,7 @@ impl Tile {
         edges.push(Edge {
             pixels: self.pixels.
                 iter().
-                map(|vec| vec.first().map(|p| *p).unwrap()).
+                map(|vec| { vec.first().map(|p| *p).unwrap() }).
                 collect(),
         });
         edges.push(Edge {
@@ -128,8 +132,8 @@ fn parse_input() -> io::Result<InputData> {
                     '#' => Pixel::On,
                     _ => panic!("Unknown char in inpu {}", c),
                 }
-            }).collect()
-        }).collect();
+            }).collect::<Vec<_>>()
+        }).filter(|v| v.len() > 0).collect();
         Tile {
             identifier: identifier,
             pixels: pixels,
