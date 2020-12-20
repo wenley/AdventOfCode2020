@@ -129,6 +129,26 @@ impl Tile {
                 collect(),
         }
     }
+
+    fn rotate_right(&self) -> Tile {
+        self.clone()
+    }
+    fn flip(&self) -> Tile {
+        self.clone()
+    }
+
+    fn transformed_tiles(&self) -> Vec<Tile> {
+        vec![
+            self.clone(),
+            self.rotate_right(),
+            self.rotate_right().rotate_right(),
+            self.rotate_right().rotate_right().rotate_right(),
+            self.flip(),
+            self.flip().rotate_right(),
+            self.flip().rotate_right().rotate_right(),
+            self.flip().rotate_right().rotate_right().rotate_right(),
+        ]
+    }
 }
 
 struct InputData {
