@@ -10,7 +10,8 @@ use regex::Regex;
 fn main() {
     let input = parse_input().unwrap();
 
-    let corner_tiles: Vec<_> = input.corner_tiles();
+    let tile_to_unique_edge_count = input.tile_to_unique_edge_count();
+    let corner_tiles: Vec<_> = input.corner_tiles(&tile_to_unique_edge_count);
 
     println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * **i));
 }
@@ -204,8 +205,7 @@ impl InputData {
         tile_to_unique_edge_count
     }
 
-    fn corner_tiles(&self) -> Vec<usize> {
-        let tile_to_unique_edge_count = self.tile_to_unique_edge_count();
+    fn corner_tiles(&self, tile_to_unique_edge_count: &HashMap<usize, usize>) -> Vec<usize> {
         tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
             **unique_edges >= 2
         }).map(|(id, _)| id).collect()
