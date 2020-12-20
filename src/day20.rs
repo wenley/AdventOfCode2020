@@ -160,6 +160,16 @@ struct InputData {
 }
 
 impl InputData {
+    fn complete_picture(&self) -> Vec<Vec<Pixel>> {
+        vec![]
+    }
+
+    fn aligned_tiles(&self) -> Vec<Vec<Tile>> {
+        let mut rows = vec![];
+        // let mut current_row = vec![];
+        rows
+    }
+
     fn edge_to_tile_ids(&self) -> HashMap<u64, Vec<usize>> {
         let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
         self.tiles.iter().for_each(|(identifier, tile)| {
