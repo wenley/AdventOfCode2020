@@ -203,6 +203,26 @@ impl InputData {
             current_tile = next_tile;
             match (&current_row_type, self.tile_type(current_tile.identifier, &tile_to_unique_edge_count)) {
                 (RowType::FirstRow, TileType::Corner) => {
+                    let current_first_tile = current_row.first().unwrap();
+                    let next_first_tile = edge_to_tile_ids.
+                        get(&current_first_tile.bottom_edge().identifier()).
+                        and_then(|ids| ids.iter().find(|id| **id != current_first_tile.identifier)).
+                        and_then(|id| self.tiles.get(id)).
+                        and_then(|tile| {
+                            tile.transformed_tiles().iter().find(|t| {
+                                match current_tile.right_edge().alignment(&t.left_edge()) {
+                                    EdgeAlignment::Good => true,
+                                    _ => false,
+                                }
+                            }).map(|t| t.clone())
+                        }).
+                        map(|t| t.clone()).
+                        unwrap();
+
+                    rows.push(current_row);
+                    current_tile = next_first_tile;
+                    current_row = vec![current_tile.clone()];
+
                     // TODO: Move on to next row
                     break;
                 },
