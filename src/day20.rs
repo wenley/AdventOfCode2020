@@ -11,20 +11,7 @@ fn main() {
     let input = parse_input().unwrap();
 
     let id_to_tile: HashMap<_, _> = input.tiles.iter().map(|tile| (tile.identifier, tile)).collect();
-    let edge_to_tile_ids = input.edge_to_tile_ids();
-
-    let mut tile_to_unique_edge_count = HashMap::new();
-    input.tiles.iter().for_each(|tile| {
-        let unique_edges = tile.
-            edges().
-            iter().
-            map(|edge| {
-                edge_to_tile_ids.get(&edge.identifier()).map_or(0, |v| v.len())
-            }).
-            filter(|count| *count == 1).
-            count();
-        tile_to_unique_edge_count.insert(tile.identifier, unique_edges);
-    });
+    let tile_to_unique_edge_count = input.tile_to_unique_edge_count();
 
     let corner_tiles: Vec<_> = tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
         **unique_edges >= 2
@@ -119,6 +106,23 @@ impl InputData {
             });
         });
         edge_to_tile_ids
+    }
+
+    fn tile_to_unique_edge_count(&self) -> HashMap<usize, usize> {
+        let edge_to_tile_ids = self.edge_to_tile_ids();
+        let mut tile_to_unique_edge_count = HashMap::new();
+        self.tiles.iter().for_each(|tile| {
+            let unique_edges = tile.
+                edges().
+                iter().
+                map(|edge| {
+                    edge_to_tile_ids.get(&edge.identifier()).map_or(0, |v| v.len())
+                }).
+                filter(|count| *count == 1).
+                count();
+            tile_to_unique_edge_count.insert(tile.identifier, unique_edges);
+        });
+        tile_to_unique_edge_count
     }
 }
 
