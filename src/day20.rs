@@ -10,21 +10,8 @@ use regex::Regex;
 fn main() {
     let input = parse_input().unwrap();
 
-    let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
-    input.tiles.iter().for_each(|tile| {
-        tile.edges().iter().for_each(|edge| {
-            let id = edge.identifier();
-            match edge_to_tile_ids.remove(&id) {
-                None => {
-                    edge_to_tile_ids.insert(id, vec![tile.identifier]);
-                }
-                Some(mut tiles) => {
-                    tiles.push(tile.identifier);
-                    edge_to_tile_ids.insert(id, tiles);
-                }
-            }
-        });
-    });
+    let id_to_tile: HashMap<_, _> = input.tiles.iter().map(|tile| (tile.identifier, tile)).collect();
+    let edge_to_tile_ids = input.edge_to_tile_ids();
 
     let mut tile_to_unique_edge_count = HashMap::new();
     input.tiles.iter().for_each(|tile| {
@@ -112,6 +99,27 @@ impl Tile {
 
 struct InputData {
     tiles: Vec<Tile>,
+}
+
+impl InputData {
+    fn edge_to_tile_ids(&self) -> HashMap<u64, Vec<usize>> {
+        let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
+        self.tiles.iter().for_each(|tile| {
+            tile.edges().iter().for_each(|edge| {
+                let id = edge.identifier();
+                match edge_to_tile_ids.remove(&id) {
+                    None => {
+                        edge_to_tile_ids.insert(id, vec![tile.identifier]);
+                    }
+                    Some(mut tiles) => {
+                        tiles.push(tile.identifier);
+                        edge_to_tile_ids.insert(id, tiles);
+                    }
+                }
+            });
+        });
+        edge_to_tile_ids
+    }
 }
 
 fn parse_input() -> io::Result<InputData> {
