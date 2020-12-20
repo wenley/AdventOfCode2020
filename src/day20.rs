@@ -10,7 +10,6 @@ use regex::Regex;
 fn main() {
     let input = parse_input().unwrap();
 
-    let id_to_tile: HashMap<_, _> = input.tiles.iter().map(|tile| (tile.identifier, tile)).collect();
     let tile_to_unique_edge_count = input.tile_to_unique_edge_count();
 
     let corner_tiles: Vec<_> = tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
@@ -48,7 +47,6 @@ impl Edge {
 
 #[derive(Hash, Debug, Clone)]
 struct Tile {
-    identifier: usize,
     pixels: Vec<Vec<Pixel>>,
 }
 
@@ -85,21 +83,21 @@ impl Tile {
 }
 
 struct InputData {
-    tiles: Vec<Tile>,
+    tiles: HashMap<usize, Tile>,
 }
 
 impl InputData {
     fn edge_to_tile_ids(&self) -> HashMap<u64, Vec<usize>> {
         let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
-        self.tiles.iter().for_each(|tile| {
+        self.tiles.iter().for_each(|(identifier, tile)| {
             tile.edges().iter().for_each(|edge| {
                 let id = edge.identifier();
                 match edge_to_tile_ids.remove(&id) {
                     None => {
-                        edge_to_tile_ids.insert(id, vec![tile.identifier]);
+                        edge_to_tile_ids.insert(id, vec![*identifier]);
                     }
                     Some(mut tiles) => {
-                        tiles.push(tile.identifier);
+                        tiles.push(*identifier);
                         edge_to_tile_ids.insert(id, tiles);
                     }
                 }
@@ -111,7 +109,7 @@ impl InputData {
     fn tile_to_unique_edge_count(&self) -> HashMap<usize, usize> {
         let edge_to_tile_ids = self.edge_to_tile_ids();
         let mut tile_to_unique_edge_count = HashMap::new();
-        self.tiles.iter().for_each(|tile| {
+        self.tiles.iter().for_each(|(identifier, tile)| {
             let unique_edges = tile.
                 edges().
                 iter().
@@ -120,7 +118,7 @@ impl InputData {
                 }).
                 filter(|count| *count == 1).
                 count();
-            tile_to_unique_edge_count.insert(tile.identifier, unique_edges);
+            tile_to_unique_edge_count.insert(*identifier, unique_edges);
         });
         tile_to_unique_edge_count
     }
@@ -147,10 +145,8 @@ fn parse_input() -> io::Result<InputData> {
                 }
             }).collect::<Vec<_>>()
         }).filter(|v| v.len() > 0).collect();
-        Tile {
-            identifier: identifier,
-            pixels: pixels,
-        }
+
+        (identifier, Tile { pixels: pixels })
     }).collect();
 
     Ok(InputData {
