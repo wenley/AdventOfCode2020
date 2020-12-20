@@ -299,27 +299,11 @@ impl InputData {
         tile_to_unique_edge_count
     }
 
-    fn tile_type(&self, identifier: usize, tile_to_unique_edge_count: &HashMap<usize, usize>) -> TileType {
-        match tile_to_unique_edge_count.get(&identifier) {
-            None => panic!("Couldn't find tile {}", identifier),
-            Some(2) => TileType::Corner,
-            Some(1) => TileType::Edge,
-            Some(0) => TileType::Center,
-            Some(count) => panic!("Unexpected unique edge count {}", count),
-        }
-    }
-
     fn corner_tiles(&self, tile_to_unique_edge_count: &HashMap<usize, usize>) -> Vec<usize> {
         tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
             **unique_edges >= 2
         }).map(|(id, _)| *id).collect()
     }
-}
-
-enum TileType {
-    Corner,
-    Edge,
-    Center,
 }
 
 fn parse_input() -> io::Result<InputData> {
