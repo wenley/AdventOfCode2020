@@ -185,40 +185,13 @@ impl InputData {
         let mut current_tile = first_corner_tile;
         let current_row_type = RowType::FirstRow;
         loop {
-            let next_tile = edge_to_tile_ids.
-                get(&current_tile.right_edge().identifier()).
-                and_then(|ids| ids.iter().find(|id| **id != current_tile.identifier)).
-                and_then(|id| self.tiles.get(id)).
-                and_then(|tile| {
-                    tile.transformed_tiles().iter().find(|t| {
-                        match current_tile.right_edge().alignment(&t.left_edge()) {
-                            EdgeAlignment::Good => true,
-                            _ => false,
-                        }
-                    }).map(|t| t.clone())
-                }).
-                map(|t| t.clone()).
-                unwrap();
+            let next_tile = self.tile_right_of(&current_tile, &edge_to_tile_ids).unwrap();
             current_row.push(next_tile.clone());
             current_tile = next_tile;
             match (&current_row_type, self.tile_type(current_tile.identifier, &tile_to_unique_edge_count)) {
                 (RowType::FirstRow, TileType::Corner) => {
                     let current_first_tile = current_row.first().unwrap();
-                    let next_first_tile = edge_to_tile_ids.
-                        get(&current_first_tile.bottom_edge().identifier()).
-                        and_then(|ids| ids.iter().find(|id| **id != current_first_tile.identifier)).
-                        and_then(|id| self.tiles.get(id)).
-                        and_then(|tile| {
-                            tile.transformed_tiles().iter().find(|t| {
-                                match current_tile.right_edge().alignment(&t.left_edge()) {
-                                    EdgeAlignment::Good => true,
-                                    _ => false,
-                                }
-                            }).map(|t| t.clone())
-                        }).
-                        map(|t| t.clone()).
-                        unwrap();
-
+                    let next_first_tile = self.tile_below(current_first_tile, &edge_to_tile_ids).unwrap();
                     rows.push(current_row);
                     current_tile = next_first_tile;
                     current_row = vec![current_tile.clone()];
@@ -239,6 +212,38 @@ impl InputData {
         }
 
         rows
+    }
+
+    fn tile_right_of(&self, current_tile: &Tile, edge_to_tile_ids: &HashMap<u64, Vec<usize>>) -> Option<Tile> {
+        edge_to_tile_ids.
+            get(&current_tile.right_edge().identifier()).
+            and_then(|ids| ids.iter().find(|id| **id != current_tile.identifier)).
+            and_then(|id| self.tiles.get(id)).
+            and_then(|tile| {
+                tile.transformed_tiles().iter().find(|t| {
+                    match current_tile.right_edge().alignment(&t.left_edge()) {
+                        EdgeAlignment::Good => true,
+                        _ => false,
+                    }
+                }).map(|t| t.clone())
+            }).
+            map(|t| t.clone())
+    }
+
+    fn tile_below(&self, current_tile: &Tile, edge_to_tile_ids: &HashMap<u64, Vec<usize>>) -> Option<Tile> {
+        edge_to_tile_ids.
+            get(&current_tile.bottom_edge().identifier()).
+            and_then(|ids| ids.iter().find(|id| **id != current_tile.identifier)).
+            and_then(|id| self.tiles.get(id)).
+            and_then(|tile| {
+                tile.transformed_tiles().iter().find(|t| {
+                    match current_tile.bottom_edge().alignment(&t.top_edge()) {
+                        EdgeAlignment::Good => true,
+                        _ => false,
+                    }
+                }).map(|t| t.clone())
+            }).
+            map(|t| t.clone())
     }
 
     fn edge_to_tile_ids(&self) -> HashMap<u64, Vec<usize>> {
