@@ -48,6 +48,22 @@ impl Edge {
         self.pixels.iter().rev().collect::<Vec<_>>().hash(&mut hasher);
         hasher.finish()
     }
+
+    fn alignment(&self, other: &Edge) -> EdgeAlignment {
+        if self.forward_identifier() == other.forward_identifier() {
+            EdgeAlignment::Good
+        } else if self.forward_identifier() == other.backward_identifier() {
+            EdgeAlignment::Flip
+        } else {
+            EdgeAlignment::None
+        }
+    }
+}
+
+enum EdgeAlignment {
+    Good,
+    Flip,
+    None,
 }
 
 #[derive(Hash, Debug, Clone)]
