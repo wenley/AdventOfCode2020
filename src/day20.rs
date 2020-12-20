@@ -29,19 +29,24 @@ struct Edge {
 }
 impl Edge {
     fn identifier(&self) -> u64 {
-        let mut forward_hasher = DefaultHasher::new();
-        self.pixels.hash(&mut forward_hasher);
-        let forward = forward_hasher.finish();
-
-        let mut backward_hasher = DefaultHasher::new();
-        self.pixels.iter().rev().collect::<Vec<_>>().hash(&mut backward_hasher);
-        let backward = backward_hasher.finish();
-
-        if forward <= backward {
-            forward
+        let (f, b) = (self.forward_identifier(), self.backward_identifier());
+        if f <= b {
+            f
         } else {
-            backward
+            b
         }
+    }
+
+    fn forward_identifier(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.pixels.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    fn backward_identifier(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.pixels.iter().rev().collect::<Vec<_>>().hash(&mut hasher);
+        hasher.finish()
     }
 }
 
@@ -52,33 +57,45 @@ struct Tile {
 
 impl Tile {
     fn edges(&self) -> Vec<Edge> {
-        let mut edges = vec![];
-        edges.push(Edge {
+        vec![
+            self.top_edge(),
+            self.bottom_edge(),
+            self.left_edge(),
+            self.right_edge(),
+        ]
+    }
+
+    fn top_edge(&self) -> Edge {
+        Edge {
             pixels: self.pixels.
                 first().
                 map(|vec| vec.iter().map(|p| *p).collect()).
                 unwrap(),
-        });
-        edges.push(Edge {
+        }
+    }
+    fn bottom_edge(&self) -> Edge {
+        Edge {
             pixels: self.pixels.
                 last().
                 map(|vec| vec.iter().map(|p| *p).collect()).
                 unwrap(),
-        });
-        edges.push(Edge {
+        }
+    }
+    fn left_edge(&self) -> Edge {
+        Edge {
             pixels: self.pixels.
                 iter().
                 map(|vec| { vec.first().map(|p| *p).unwrap() }).
                 collect(),
-        });
-        edges.push(Edge {
+        }
+    }
+    fn right_edge(&self) -> Edge {
+        Edge {
             pixels: self.pixels.
                 iter().
                 map(|vec| vec.last().map(|p| *p).unwrap()).
                 collect(),
-        });
-
-        edges
+        }
     }
 }
 
