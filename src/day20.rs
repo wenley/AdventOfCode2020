@@ -166,8 +166,58 @@ impl InputData {
     }
 
     fn aligned_tiles(&self) -> Vec<Vec<Tile>> {
+        let edge_to_tile_ids = self.edge_to_tile_ids();
+        let tile_to_unique_edge_count = self.tile_to_unique_edge_count();
+        let first_corner_tile = self.corner_tiles(&tile_to_unique_edge_count).
+            first().
+            and_then(|id| self.tiles.get(id)).
+            and_then(|tile| {
+                tile.transformed_tiles().iter().find(|t| {
+                    let top_unique = edge_to_tile_ids.get(&t.top_edge().identifier()).map_or(false, |ids| ids.len() == 1);
+                    let left_unique = edge_to_tile_ids.get(&t.left_edge().identifier()).map_or(false, |ids| ids.len() == 1);
+
+                    top_unique && left_unique
+                }).map(|t| t.clone())
+            }).unwrap();
+
         let mut rows = vec![];
-        // let mut current_row = vec![];
+        let mut current_row = vec![first_corner_tile.clone()];
+        let mut current_tile = first_corner_tile;
+        let current_row_type = RowType::FirstRow;
+        loop {
+            let next_tile = edge_to_tile_ids.
+                get(&current_tile.right_edge().identifier()).
+                and_then(|ids| ids.iter().find(|id| **id != current_tile.identifier)).
+                and_then(|id| self.tiles.get(id)).
+                and_then(|tile| {
+                    tile.transformed_tiles().iter().find(|t| {
+                        match current_tile.right_edge().alignment(&t.left_edge()) {
+                            EdgeAlignment::Good => true,
+                            _ => false,
+                        }
+                    }).map(|t| t.clone())
+                }).
+                map(|t| t.clone()).
+                unwrap();
+            current_row.push(next_tile.clone());
+            current_tile = next_tile;
+            match (&current_row_type, self.tile_type(current_tile.identifier, &tile_to_unique_edge_count)) {
+                (RowType::FirstRow, TileType::Corner) => {
+                    // TODO: Move on to next row
+                    break;
+                },
+                (RowType::MiddleRow, TileType::Edge) => {
+                    // Finished a middle row; start next row
+                },
+                (RowType::FinalRow, TileType::Corner) => {
+                    // Finished with whole array
+                    rows.push(current_row);
+                    break;
+                }
+                _ => {},
+            }
+        }
+
         rows
     }
 
@@ -223,6 +273,12 @@ impl InputData {
             **unique_edges >= 2
         }).map(|(id, _)| *id).collect()
     }
+}
+
+enum RowType {
+    FirstRow,
+    MiddleRow,
+    FinalRow,
 }
 
 enum TileType {
