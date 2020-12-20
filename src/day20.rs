@@ -154,6 +154,16 @@ impl Tile {
             self.flip().rotate_right().rotate_right().rotate_right(),
         ]
     }
+
+    fn trim_edges(&self) -> Tile {
+        let row_count = self.pixels.len();
+        let trimmed_pixels = (1..row_count - 1).map(|i| {
+            let row = self.row(i);
+            let row_length = row.len();
+            row[1..row_length - 1].iter().map(|p| *p).collect()
+        }).collect();
+        Tile { identifier: self.identifier, pixels: trimmed_pixels }
+    }
 }
 
 struct InputData {
