@@ -10,16 +10,17 @@ use regex::Regex;
 fn main() {
     let input = parse_input().unwrap();
 
-    let mut edge_to_tile_count: HashMap<u64, usize>  = HashMap::new();
+    let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
     input.tiles.iter().for_each(|tile| {
         tile.edges().iter().for_each(|edge| {
             let id = edge.identifier();
-            match edge_to_tile_count.remove(&id) {
+            match edge_to_tile_ids.remove(&id) {
                 None => {
-                    edge_to_tile_count.insert(id, 1);
+                    edge_to_tile_ids.insert(id, vec![tile.identifier]);
                 }
-                Some(count) => {
-                    edge_to_tile_count.insert(id, count + 1);
+                Some(mut tiles) => {
+                    tiles.push(tile.identifier);
+                    edge_to_tile_ids.insert(id, tiles);
                 }
             }
         });
@@ -31,9 +32,9 @@ fn main() {
             edges().
             iter().
             map(|edge| {
-                edge_to_tile_count.get(&edge.identifier()).unwrap()
+                edge_to_tile_ids.get(&edge.identifier()).map_or(0, |v| v.len())
             }).
-            filter(|count| **count == 1).
+            filter(|count| *count == 1).
             count();
         tile_to_unique_edge_count.insert(tile.identifier, unique_edges);
     });
