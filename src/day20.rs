@@ -99,35 +99,30 @@ impl Tile {
 
     fn top_edge(&self) -> Edge {
         Edge {
-            pixels: self.pixels.
-                first().
-                map(|vec| vec.iter().map(|p| *p).collect()).
-                unwrap(),
+            pixels: self.row(0)
         }
     }
     fn bottom_edge(&self) -> Edge {
         Edge {
-            pixels: self.pixels.
-                last().
-                map(|vec| vec.iter().map(|p| *p).collect()).
-                unwrap(),
+            pixels: self.row(self.pixels.len() - 1)
         }
     }
     fn left_edge(&self) -> Edge {
         Edge {
-            pixels: self.pixels.
-                iter().
-                map(|vec| { vec.first().map(|p| *p).unwrap() }).
-                collect(),
+            pixels: self.col(0)
         }
     }
     fn right_edge(&self) -> Edge {
         Edge {
-            pixels: self.pixels.
-                iter().
-                map(|vec| vec.last().map(|p| *p).unwrap()).
-                collect(),
+            pixels: self.col(self.pixels.first().map(|v| v.len() - 1).unwrap())
         }
+    }
+
+    fn row(&self, i: usize) -> Vec<Pixel> {
+        self.pixels.iter().nth(i).map(|vec| vec.iter().map(|p| *p).collect()).unwrap()
+    }
+    fn col(&self, j: usize) -> Vec<Pixel> {
+        self.pixels.iter().map(|row| row.iter().nth(j).map(|p| *p).unwrap()).collect()
     }
 
     fn rotate_right(&self) -> Tile {
