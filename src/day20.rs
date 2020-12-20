@@ -14,6 +14,9 @@ fn main() {
     let corner_tiles: Vec<_> = input.corner_tiles(&tile_to_unique_edge_count);
 
     println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * *i));
+
+    let pixel_matrix = input.complete_picture();
+    println!("{:?}", pixel_matrix);
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
@@ -172,7 +175,16 @@ struct InputData {
 
 impl InputData {
     fn complete_picture(&self) -> Vec<Vec<Pixel>> {
-        vec![]
+        let aligned_tiles = self.aligned_tiles();
+        aligned_tiles.iter().map(|tiles| tiles.iter().map(|t| t.trim_edges()).collect()).flat_map(|tile_row: Vec<Tile>| {
+            (0..tile_row[0].pixels.len()).map(|row_index| {
+                let mut giant_row = vec![];
+                tile_row.iter().map(|tile| tile.row(row_index)).for_each(|mut row| {
+                    giant_row.append(&mut row);
+                });
+                giant_row
+            }).collect::<Vec<_>>()
+        }).collect()
     }
 
     fn aligned_tiles(&self) -> Vec<Vec<Tile>> {
