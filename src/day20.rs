@@ -183,31 +183,25 @@ impl InputData {
         let mut rows = vec![];
         let mut current_row = vec![first_corner_tile.clone()];
         let mut current_tile = first_corner_tile;
-        let current_row_type = RowType::FirstRow;
         loop {
-            let next_tile = self.tile_right_of(&current_tile, &edge_to_tile_ids).unwrap();
-            current_row.push(next_tile.clone());
-            current_tile = next_tile;
-            match (&current_row_type, self.tile_type(current_tile.identifier, &tile_to_unique_edge_count)) {
-                (RowType::FirstRow, TileType::Corner) => {
-                    let current_first_tile = current_row.first().unwrap();
-                    let next_first_tile = self.tile_below(current_first_tile, &edge_to_tile_ids).unwrap();
-                    rows.push(current_row);
-                    current_tile = next_first_tile;
-                    current_row = vec![current_tile.clone()];
-
-                    // TODO: Move on to next row
-                    break;
-                },
-                (RowType::MiddleRow, TileType::Edge) => {
-                    // Finished a middle row; start next row
-                },
-                (RowType::FinalRow, TileType::Corner) => {
-                    // Finished with whole array
-                    rows.push(current_row);
-                    break;
+            match self.tile_right_of(&current_tile, &edge_to_tile_ids) {
+                Some(tile) => {
+                    current_row.push(tile.clone());
+                    current_tile = tile;
                 }
-                _ => {},
+                None => {
+                    let current_first_tile = current_row.first().unwrap();
+                    match self.tile_below(&current_first_tile, &edge_to_tile_ids) {
+                        Some(new_row_tile) => {
+                            rows.push(current_row);
+                            current_row = vec![new_row_tile.clone()];
+                            current_tile = new_row_tile;
+                        }
+                        None => {
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -298,12 +292,6 @@ impl InputData {
             **unique_edges >= 2
         }).map(|(id, _)| *id).collect()
     }
-}
-
-enum RowType {
-    FirstRow,
-    MiddleRow,
-    FinalRow,
 }
 
 enum TileType {
