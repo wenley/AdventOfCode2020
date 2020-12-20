@@ -8,9 +8,35 @@ use std::hash::{Hash, Hasher};
 
 fn main() {
     let input = parse_input().unwrap();
+
+    let mut edge_to_tile_count: HashMap<Edge, usize>  = HashMap::new();
+    input.tiles.iter().for_each(|tile| {
+        tile.edges().iter().for_each(|edge| {
+            match edge_to_tile_count.get(edge) {
+                None => {
+                    edge_to_tile_count.insert(edge.clone(), 1);
+                }
+                Some(count) => {
+                    edge_to_tile_count.insert(edge.clone(), count + 1);
+                }
+            }
+        });
+    });
+
+    // let tile_to_unique_edge_count = HashMap::new();
+    input.tiles.iter().for_each(|tile| {
+        let unique_edges = tile.
+            edges().
+            iter().
+            map(|edge| edge_to_tile_count.get(edge).unwrap()).
+            filter(|count| **count == 1).
+            count();
+        // tile_to_unique_edge_count.insert(tile, unique_edges);
+    });
+
 }
 
-#[derive(Hash, Debug, Clone, Copy)]
+#[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 enum Pixel {
     On,
     Off,
@@ -20,7 +46,7 @@ struct Tile {
     pixels: Vec<Vec<Pixel>>,
 }
 
-#[derive(Hash, Debug, Clone)]
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
 struct Edge {
     pixels: Vec<Pixel>
 }
