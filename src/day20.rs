@@ -126,10 +126,19 @@ impl Tile {
     }
 
     fn rotate_right(&self) -> Tile {
-        self.clone()
+        Tile {
+            pixels: (0..self.pixels.len()).map(|new_row| {
+                self.col(new_row).iter().rev().map(|p| *p).collect()
+            }).collect(),
+        }
     }
     fn flip(&self) -> Tile {
-        self.clone()
+        Tile {
+            pixels: self.pixels.
+                iter().
+                map(|row| row.iter().rev().map(|p| *p).collect()).
+                collect()
+        }
     }
 
     fn transformed_tiles(&self) -> Vec<Tile> {
