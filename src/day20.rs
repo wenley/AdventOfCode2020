@@ -50,15 +50,32 @@ enum Pixel {
     On,
     Off,
 }
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+struct Edge {
+    pixels: Vec<Pixel>
+}
+impl Edge {
+    fn identifier(&self) -> u64 {
+        let mut forward_hasher = DefaultHasher::new();
+        self.pixels.hash(&mut forward_hasher);
+        let forward = forward_hasher.finish();
+
+        let mut backward_hasher = DefaultHasher::new();
+        self.pixels.iter().rev().collect::<Vec<_>>().hash(&mut backward_hasher);
+        let backward = backward_hasher.finish();
+
+        if forward <= backward {
+            forward
+        } else {
+            backward
+        }
+    }
+}
+
 #[derive(Hash, Debug, Clone)]
 struct Tile {
     identifier: usize,
     pixels: Vec<Vec<Pixel>>,
-}
-
-#[derive(Hash, Debug, Clone, PartialEq, Eq)]
-struct Edge {
-    pixels: Vec<Pixel>
 }
 
 impl Tile {
@@ -95,23 +112,6 @@ impl Tile {
 
 struct InputData {
     tiles: Vec<Tile>,
-}
-impl Edge {
-    fn identifier(&self) -> u64 {
-        let mut forward_hasher = DefaultHasher::new();
-        self.pixels.hash(&mut forward_hasher);
-        let forward = forward_hasher.finish();
-
-        let mut backward_hasher = DefaultHasher::new();
-        self.pixels.iter().rev().collect::<Vec<_>>().hash(&mut backward_hasher);
-        let backward = backward_hasher.finish();
-
-        if forward <= backward {
-            forward
-        } else {
-            backward
-        }
-    }
 }
 
 fn parse_input() -> io::Result<InputData> {
