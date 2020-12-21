@@ -337,9 +337,9 @@ impl InputData {
                 }
                 None => {
                     let current_first_tile = current_row.first().unwrap();
+                    rows.push(current_row.clone());
                     match self.tile_below(&current_first_tile, &edge_to_tile_ids) {
                         Some(new_row_tile) => {
-                            rows.push(current_row);
                             current_row = vec![new_row_tile.clone()];
                             current_tile = new_row_tile;
                         }
