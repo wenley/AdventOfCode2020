@@ -77,30 +77,14 @@ struct Tile {
     identifier: usize,
     pixels: Vec<Vec<Pixel>>,
 }
-enum TileEdge {
-    Top(Edge),
-    Bottom(Edge),
-    Left(Edge),
-    Right(Edge),
-}
-impl TileEdge {
-    fn edge(&self) -> &Edge {
-        match self {
-            TileEdge::Top(e) => e,
-            TileEdge::Bottom(e) => e,
-            TileEdge::Left(e) => e,
-            TileEdge::Right(e) => e,
-        }
-    }
-}
 
 impl Tile {
-    fn tile_edges(&self) -> Vec<TileEdge> {
+    fn tile_edges(&self) -> Vec<Edge> {
         vec![
-            TileEdge::Top(self.top_edge()),
-            TileEdge::Bottom(self.bottom_edge()),
-            TileEdge::Left(self.left_edge()),
-            TileEdge::Right(self.right_edge()),
+            self.top_edge(),
+            self.bottom_edge(),
+            self.left_edge(),
+            self.right_edge(),
         ]
     }
 
@@ -271,8 +255,7 @@ impl InputData {
     fn edge_to_tile_ids(&self) -> HashMap<u64, Vec<usize>> {
         let mut edge_to_tile_ids: HashMap<u64, Vec<usize>>  = HashMap::new();
         self.tiles.iter().for_each(|(identifier, tile)| {
-            tile.tile_edges().iter().for_each(|tile_edge| {
-                let edge = tile_edge.edge();
+            tile.tile_edges().iter().for_each(|edge| {
                 let id = edge.identifier();
                 match edge_to_tile_ids.remove(&id) {
                     None => {
@@ -295,8 +278,8 @@ impl InputData {
             let unique_edges = tile.
                 tile_edges().
                 iter().
-                map(|tile_edge| {
-                    edge_to_tile_ids.get(&tile_edge.edge().identifier()).map_or(0, |v| v.len())
+                map(|edge| {
+                    edge_to_tile_ids.get(&edge.identifier()).map_or(0, |v| v.len())
                 }).
                 filter(|count| *count == 1).
                 count();
