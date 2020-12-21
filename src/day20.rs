@@ -16,7 +16,12 @@ fn main() {
     println!("Corner tiles = {:?}", corner_tiles.iter().fold(1, |acc, i| acc * *i));
 
     let pixel_matrix = input.complete_picture();
-    println!("{:?}", pixel_matrix);
+    pixel_matrix.iter().for_each(|row| {
+        println!("{}", row.iter().map(|p| match p {
+            Pixel::On => "#",
+            Pixel::Off => ".",
+        }).collect::<Vec<_>>().join(""))
+    });
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
@@ -201,6 +206,7 @@ impl InputData {
                     top_unique && left_unique
                 }).map(|t| t.clone())
             }).unwrap();
+        println!("Selected {} as first corner tile", first_corner_tile.identifier);
 
         let mut rows = vec![];
         let mut current_row = vec![first_corner_tile.clone()];
