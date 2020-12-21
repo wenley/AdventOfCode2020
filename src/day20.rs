@@ -42,7 +42,7 @@ fn main() {
     }).sum();
     sea_map.print();
     println!("Non-monster live pixels: {}", non_monster_active_pixels);
-    println!("{} by {} pixels", sea_map.pixels.len(), sea_map.pixels[0].len());
+    println!("{} rows by {} columns of pixels", sea_map.pixels.len(), sea_map.pixels[0].len());
 }
 
 struct SeaMap {
@@ -281,11 +281,13 @@ impl Tile {
 
     fn trim_edges(&self) -> Tile {
         let row_count = self.pixels.len();
-        let trimmed_pixels = (1..row_count - 1).map(|i| {
+        let trimmed_pixels: Vec<Vec<_>> = (1..row_count - 1).map(|i| {
             let row = self.row(i);
             let row_length = row.len();
             row[1..row_length - 1].iter().map(|p| *p).collect()
         }).collect();
+        println!("Old dimensions: {} x {}", row_count, self.pixels[0].len());
+        println!("New dimensions: {} x {}", trimmed_pixels.len(), trimmed_pixels[0].len());
         Tile { identifier: self.identifier, pixels: trimmed_pixels }
     }
 }
