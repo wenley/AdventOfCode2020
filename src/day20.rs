@@ -78,6 +78,24 @@ struct Tile {
     pixels: Vec<Vec<Pixel>>,
 }
 
+fn rotate_right<T: Copy>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+    (0..matrix.len()).map(|new_row_index| {
+        let col_index = new_row_index;
+        matrix.
+            iter().
+            map(|row| row.iter().nth(col_index).map(|t| *t).unwrap()).
+            rev(). // Reading from bottom to top -> left to right after rotation
+            collect()
+    }).collect()
+}
+
+fn vertical_axis_flip<T: Copy>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+    matrix.
+        iter().
+        map(|row| row.iter().rev().map(|p| *p).collect()).
+        collect()
+}
+
 impl Tile {
     fn tile_edges(&self) -> Vec<Edge> {
         vec![
@@ -119,18 +137,13 @@ impl Tile {
     fn rotate_right(&self) -> Tile {
         Tile {
             identifier: self.identifier,
-            pixels: (0..self.pixels.len()).map(|new_row| {
-                self.col(new_row).iter().rev().map(|p| *p).collect()
-            }).collect(),
+            pixels: rotate_right(&self.pixels),
         }
     }
     fn flip(&self) -> Tile {
         Tile {
             identifier: self.identifier,
-            pixels: self.pixels.
-                iter().
-                map(|row| row.iter().rev().map(|p| *p).collect()).
-                collect()
+            pixels: vertical_axis_flip(&self.pixels),
         }
     }
 
