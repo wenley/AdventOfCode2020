@@ -111,11 +111,6 @@ impl SeaMap {
         self.work_space = rotate_right(&self.work_space);
     }
 
-    fn flip(&mut self) {
-        self.pixels = vertical_axis_flip(&self.pixels);
-        self.work_space = vertical_axis_flip(&self.work_space);
-    }
-
     fn print(&self) {
         (0..self.row_count()).for_each(|x| {
             let line = (0..self.col_count()).map(|y| {
