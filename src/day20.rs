@@ -302,9 +302,11 @@ impl InputData {
     }
 
     fn corner_tiles(&self, tile_to_unique_edge_count: &HashMap<usize, usize>) -> Vec<usize> {
-        tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
+        let mut ids: Vec<_> = tile_to_unique_edge_count.iter().filter(|(_, unique_edges)| {
             **unique_edges >= 2
-        }).map(|(id, _)| *id).collect()
+        }).map(|(id, _)| *id).collect();
+        ids.sort();
+        ids
     }
 }
 
