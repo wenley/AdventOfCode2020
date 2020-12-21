@@ -22,6 +22,125 @@ fn main() {
             Pixel::Off => ".",
         }).collect::<Vec<_>>().join(""))
     });
+    let work_space: Vec<Vec<_>> = pixel_matrix.iter().map(|row| {
+        row.iter().map(|_| false).collect()
+    }).collect();
+
+    let mut sea_map = SeaMap {
+        pixels: pixel_matrix,
+        work_space: work_space,
+    };
+    sea_map.mark_all_sea_monsters();
+    let non_monster_active_pixels: usize = sea_map.pixels.iter().enumerate().map(|(x, row)| {
+        row.iter().enumerate().map(|(y, _)| {
+            match sea_map.get_map_pixel(x, y) {
+                MapPixel::Monster => 0,
+                MapPixel::On => 1,
+                MapPixel::Off => 0,
+            }
+        }).sum::<usize>()
+    }).sum();
+    sea_map.print();
+    println!("Non-monster live pixels: {}", non_monster_active_pixels);
+    println!("{} by {} pixels", sea_map.pixels.len(), sea_map.pixels[0].len());
+}
+
+struct SeaMap {
+    pixels: Vec<Vec<Pixel>>,
+    work_space: Vec<Vec<bool>>,
+}
+const MONSTER_OFFSETS: [(usize, usize); 15] = [
+    (1, 0),
+    (2, 1),
+    (2, 4),
+    (1, 5),
+    (1, 6),
+    (2, 7),
+    (2, 10),
+    (1, 11),
+    (1, 12),
+    (2, 13),
+    (2, 16),
+    (1, 17),
+    (0, 18),
+    (1, 18),
+    (1, 19),
+];
+
+impl SeaMap {
+    fn get_pixel(&self, row: usize, col: usize) -> Pixel {
+        self.pixels[row][col]
+    }
+    fn get_map_pixel(&self, row: usize, col: usize) -> MapPixel {
+        match (self.get_pixel(row, col), self.is_part_of_monster(row, col)) {
+            (Pixel::Off, _) => MapPixel::Off,
+            (Pixel::On, true) => MapPixel::Monster,
+            (Pixel::On, false) => MapPixel::On,
+        }
+    }
+    fn row_count(&self) -> usize {
+        self.pixels.len()
+    }
+    fn col_count(&self) -> usize {
+        self.pixels[0].len()
+    }
+    fn is_part_of_monster(&self, row: usize, col: usize) -> bool {
+        self.work_space[row][col]
+    }
+    fn is_sea_monster(&self, x: usize, y: usize) -> bool {
+        MONSTER_OFFSETS.iter().all(|(dx, dy)| self.get_pixel(x + dx, y + dy) == Pixel::On)
+    }
+    fn mark_sea_monster(&mut self, x: usize, y: usize) {
+        MONSTER_OFFSETS.iter().for_each(|(dx, dy)| {
+            let row = &mut self.work_space[x + dx];
+            row[y + dy] = true;
+        });
+    }
+    fn mark_sea_monsters(&mut self) {
+        (0..self.pixels.len() - 2).for_each(|x| {
+            (0..self.pixels[x].len() - 19).for_each(|y| {
+                if self.is_sea_monster(x, y) {
+                    self.mark_sea_monster(x, y);
+                }
+            });
+        });
+    }
+
+    fn rotate_right(&mut self) {
+        self.pixels = rotate_right(&self.pixels);
+        self.work_space = rotate_right(&self.work_space);
+    }
+
+    fn flip(&mut self) {
+        self.pixels = vertical_axis_flip(&self.pixels);
+        self.work_space = vertical_axis_flip(&self.work_space);
+    }
+
+    fn print(&self) {
+        (0..self.row_count()).for_each(|x| {
+            let line = (0..self.col_count()).map(|y| {
+                match self.get_map_pixel(x, y) {
+                    MapPixel::Off => " ",
+                    MapPixel::On => "-",
+                    MapPixel::Monster => "M",
+                }
+            }).collect::<Vec<_>>().join("");
+            println!("{}", line);
+        })
+    }
+
+    fn mark_all_sea_monsters(&mut self) {
+        self.rotate_right();
+        self.rotate_right();
+        self.rotate_right();
+        self.mark_sea_monsters();
+    }
+}
+
+enum MapPixel {
+    On,
+    Off,
+    Monster,
 }
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
