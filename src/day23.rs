@@ -29,6 +29,7 @@ struct Cup {
 }
 
 struct EfficientCircle {
+    max: usize,
     cups: HashMap<usize, Rc<RefCell<Cup>>>,
 }
 
@@ -51,16 +52,53 @@ impl EfficientCircle {
 
         let num_cups = cups.len();
         link_cups(&mut cups, num_cups - 1, 0);
-        for i in (0..num_cups - 1) {
+        for i in 0..num_cups - 1 {
             link_cups(&mut cups, i, i + 1);
         }
 
         EfficientCircle {
+            max: values.iter().max().map(|i| *i).unwrap(),
             cups: cups.drain(0..).map(|c| {
                 let val = c.borrow().value;
                 (val, c)
             }).collect()
         }
+    }
+
+    fn next_current_cup(&mut self, current_cup_value: usize) -> usize {
+        let current_cup = self.cups.get(&current_cup_value).unwrap();
+        let first_cup: Rc<RefCell<Cup>> = current_cup.next.unwrap().clone();
+        let second_cup: Rc<RefCell<Cup>> = first_cup.next.unwrap().clone();
+        let third_cup: Rc<RefCell<Cup>> = second_cup.next.unwrap().clone();
+        let fourth_cup: Rc<RefCell<Cup>> = third_cup.next.unwrap().clone();
+
+        let next_cup_value = self.next_cup(
+            current_cup_value,
+            &vec![(*first_cup).borrow().value],
+        );
+        let next_cup: Rc<RefCell<Cup>> = self.cups.get(next_cup_value).unwrap().clone();
+        let maybe_after_cup = next_cup.next;
+
+        Rc::get_mut(next_cup).unwrap().borrow_mut().next = Some(first_cup);
+        Rc::get_mut(third_cup).unwrap().borrow_mut().next = maybe_after_cup;
+
+        Rc::get_mut(current_cup).unwrap().borrow_mut().next = Some(fourth_cup.clone());
+    }
+
+    fn next_cup(&self, current_cup: usize, picked_up_cups: &Vec<usize>) -> usize {
+        let cups_to_move_set: HashSet<_> = picked_up_cups.iter().map(|i| *i).collect();
+
+        let mut cup_to_place_after = current_cup - 1;
+        if cup_to_place_after == 0 {
+            cup_to_place_after = self.max;
+        }
+        while cups_to_move_set.contains(&cup_to_place_after) {
+            cup_to_place_after -= 1;
+            if cup_to_place_after == 0 {
+                cup_to_place_after = self.max;
+            }
+        }
+        cup_to_place_after
     }
 }
 
@@ -112,7 +150,7 @@ impl InputData {
 
 fn part2_input() -> InputData {
     let mut input = part1_input();
-    for i in (10..=1_000_000) {
+    for i in 10..=1_000_000 {
         input.ring.push_back(i);
     }
     input.max = 1_000_000;
