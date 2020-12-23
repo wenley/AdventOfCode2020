@@ -7,7 +7,7 @@ use std::collections::HashSet;
 fn main() {
     let input = parse_input();
     let mut game1 = input.clone();
-    // game1.play();
+    game1.play();
 
     let winner = if game1.player1.len() > 0 {
         game1.player1
@@ -54,35 +54,34 @@ impl InputData {
     fn play2(&mut self) -> Player {
         let mut seen_states = HashSet::new();
         let mut winner = Player::One;
-        let mut round = 1;
 
         while self.player1.len() > 0 && self.player2.len() > 0 {
             if seen_states.contains(self) {
-                println!("Already saw {:?}", self);
+                // println!("Already saw {:?}", self);
                 return Player::One
             }
             seen_states.insert(self.clone());
 
             winner = self.play2_round();
-            println!("Game {} Round {} winner = {:?}", self.game_layer, round, winner);
-            round += 1;
         }
 
-        println!("Game {} winner = {:?}", self.game_layer, winner);
+        // println!("Game {} winner = {:?}", self.game_layer, winner);
         winner
     }
 
     fn play2_round(&mut self) -> Player {
-        println!("(Game {}) {:?} vs {:?}", self.game_layer, self.player1, self.player2);
+        // println!("(Game {}) {:?} vs {:?}", self.game_layer, self.player1, self.player2);
 
         let card1 = self.player1.pop_front().unwrap();
         let card2 = self.player2.pop_front().unwrap();
 
         let winner = if self.player1.len() >= card1 && self.player2.len() >= card2 {
-            let mut subgame = self.clone();
-            subgame.game_layer += 1;
-            let result = subgame.play2();
-            result
+            let mut subgame = InputData {
+                game_layer: self.game_layer + 1,
+                player1: self.player1.iter().take(card1).map(|i| *i).collect(),
+                player2: self.player2.iter().take(card2).map(|i| *i).collect(),
+            };
+            subgame.play2()
         } else {
             if card1 > card2 {
                 Player::One
@@ -111,7 +110,7 @@ enum Player {
 }
 
 fn parse_input() -> InputData {
-    let mut content = fs::read_to_string("inputs/day22-test.txt").
+    let mut content = fs::read_to_string("inputs/day22.txt").
         unwrap().
         split("\n\n").
         map(|s| s.to_string()).
