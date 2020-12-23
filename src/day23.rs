@@ -4,6 +4,7 @@ use std::collections::VecDeque;
 use std::collections::HashSet;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 fn main() {
     let mut input = part1_input();
@@ -24,35 +25,41 @@ struct InputData {
 
 struct Cup {
     value: usize,
-    next: Option<Rc<Cup>>,
-    prev: Option<Rc<Cup>>,
+    next: Option<Rc<RefCell<Cup>>>,
 }
 
 struct EfficientCircle {
-    cups: HashMap<usize, Rc<Cup>>,
+    cups: HashMap<usize, Rc<RefCell<Cup>>>,
+}
+
+fn link_cups(cups: &mut Vec<Rc<RefCell<Cup>>>, from: usize, to: usize) {
+    let cup2 = cups.get(to).unwrap().clone();
+    let cup1 = cups.get_mut(from).unwrap();
+    Rc::get_mut(cup1).unwrap().borrow_mut().next = Some(cup2.clone());
 }
 
 impl EfficientCircle {
     fn from_values(values: Vec<usize>) -> EfficientCircle {
-        let mut cups: Vec<Rc<Cup>> = values.iter().map(|v| Rc::new(Cup {
-            value: *v,
-            next: None,
-            prev: None,
-        })).collect();
-        let first: &mut Rc<Cup> = cups.first_mut().unwrap();
-        let last: &mut Rc<Cup> = cups.last_mut().unwrap();
-        // first.map(|c| { c.prev = last.clone(); });
-        // last.map(|c| { c.next = first.clone(); });
+        let mut cups: Vec<Rc<RefCell<Cup>>> = values.iter().map(|v| {
+            Rc::new(
+                RefCell::new(Cup {
+                    value: *v,
+                    next: None,
+                })
+            )
+        }).collect();
 
-        // for i in (0..cups.len() - 1) {
-        //     let cup1 = cups[i];
-        //     let cup2 = cups[i + 1];
-        //     cup1.next = cup2.clone();
-        //     cup2.prev = cup1.clone();
-        // }
+        let num_cups = cups.len();
+        link_cups(&mut cups, num_cups - 1, 0);
+        for i in (0..num_cups - 1) {
+            link_cups(&mut cups, i, i + 1);
+        }
 
         EfficientCircle {
-            cups: cups.drain(0..).map(|c| (c.value, c)).collect()
+            cups: cups.drain(0..).map(|c| {
+                let val = c.borrow().value;
+                (val, c)
+            }).collect()
         }
     }
 }
