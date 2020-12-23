@@ -4,7 +4,7 @@ class Circle
     def initialize(value)
       @value = value
     end
-    attr_accessor :prev, :next
+    attr_accessor :next
     attr_reader :value
   end
 
@@ -31,9 +31,7 @@ class Circle
     cups = values.map { |i| Cup.new(i) }
     cups.each_cons(2) do |a, b|
       a.next = b
-      b.prev = a
     end
-    cups.first.prev = cups.last
     cups.last.next = cups.first
 
     @value_to_cup = cups.map { |n| [n.value, n] }.to_h
@@ -61,7 +59,6 @@ class Circle
     # Break 3 cups out of chain
     fourth_cup = @current_cup.next.next.next.next
     @current_cup.next = fourth_cup
-    fourth_cup.prev = @current_cup
 
     # Put 3 cups back into chain
     placement = cup_to_place_after(to_move)
@@ -90,9 +87,6 @@ class Circle
     after_cup = cup.next
 
     cup.next = cups.first
-    cups.first.prev = cup
-
-    after_cup.prev = cups.last
     cups.last.next = after_cup
   end
 end
