@@ -3,8 +3,6 @@ extern crate regex;
 use std::collections::VecDeque;
 use std::collections::HashSet;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 fn main() {
     let mut input = part1_input();
@@ -16,6 +14,17 @@ fn main() {
     }
 
     println!("After 100 moves: {:?}", input.ring);
+
+    let input2 = part2_input();
+    let mut circle = EfficientCircle::from_values(input2.ring.iter().map(|i| *i).collect());
+    let mut current_cup = *input.ring.front().unwrap();
+    for i in 0..10_000_000 {
+        if i % 100_000 == 0 {
+            println!("{} iterations", i);
+        }
+        current_cup = circle.next_current_cup(current_cup);
+    }
+    println!("After 10m moves: {:?} and {:?}", circle.cups.get(&1), circle.cups.get(circle.cups.get(&1).unwrap()));
 }
 
 struct InputData {
@@ -23,66 +32,43 @@ struct InputData {
     ring: VecDeque<usize>,
 }
 
-struct Cup {
-    value: usize,
-    next: Option<Rc<RefCell<Cup>>>,
-}
-
 struct EfficientCircle {
     max: usize,
-    cups: HashMap<usize, Rc<RefCell<Cup>>>,
-}
-
-fn link_cups(cups: &mut Vec<Rc<RefCell<Cup>>>, from: usize, to: usize) {
-    let cup2 = cups.get(to).unwrap().clone();
-    let cup1 = cups.get_mut(from).unwrap();
-    Rc::get_mut(cup1).unwrap().borrow_mut().next = Some(cup2.clone());
+    cups: HashMap<usize, usize>
 }
 
 impl EfficientCircle {
     fn from_values(values: Vec<usize>) -> EfficientCircle {
-        let mut cups: Vec<Rc<RefCell<Cup>>> = values.iter().map(|v| {
-            Rc::new(
-                RefCell::new(Cup {
-                    value: *v,
-                    next: None,
-                })
-            )
-        }).collect();
+        let mut cups = HashMap::new();
 
-        let num_cups = cups.len();
-        link_cups(&mut cups, num_cups - 1, 0);
-        for i in 0..num_cups - 1 {
-            link_cups(&mut cups, i, i + 1);
+        cups.insert(*values.last().unwrap(), values[0]);
+        for i in 0..values.len() - 1 {
+            cups.insert(values[i], values[i + 1]);
         }
 
         EfficientCircle {
             max: values.iter().max().map(|i| *i).unwrap(),
-            cups: cups.drain(0..).map(|c| {
-                let val = c.borrow().value;
-                (val, c)
-            }).collect()
+            cups: cups,
         }
     }
 
-    fn next_current_cup(&mut self, current_cup_value: usize) -> usize {
-        let current_cup = self.cups.get(&current_cup_value).unwrap();
-        let first_cup: Rc<RefCell<Cup>> = current_cup.next.unwrap().clone();
-        let second_cup: Rc<RefCell<Cup>> = first_cup.next.unwrap().clone();
-        let third_cup: Rc<RefCell<Cup>> = second_cup.next.unwrap().clone();
-        let fourth_cup: Rc<RefCell<Cup>> = third_cup.next.unwrap().clone();
+    fn next_current_cup(&mut self, current_cup: usize) -> usize {
+        let first_cup = *self.cups.get(&current_cup).unwrap();
+        let second_cup = *self.cups.get(&first_cup).unwrap();
+        let third_cup = *self.cups.get(&second_cup).unwrap();
+        let fourth_cup = *self.cups.get(&third_cup).unwrap();
 
-        let next_cup_value = self.next_cup(
-            current_cup_value,
-            &vec![(*first_cup).borrow().value],
+        let next_cup = self.next_cup(
+            current_cup,
+            &vec![first_cup, second_cup, third_cup],
         );
-        let next_cup: Rc<RefCell<Cup>> = self.cups.get(next_cup_value).unwrap().clone();
-        let maybe_after_cup = next_cup.next;
+        let after_cup = *self.cups.get(&next_cup).unwrap();
 
-        Rc::get_mut(next_cup).unwrap().borrow_mut().next = Some(first_cup);
-        Rc::get_mut(third_cup).unwrap().borrow_mut().next = maybe_after_cup;
+        self.cups.insert(current_cup, fourth_cup);
+        self.cups.insert(next_cup, first_cup);
+        self.cups.insert(third_cup, after_cup);
 
-        Rc::get_mut(current_cup).unwrap().borrow_mut().next = Some(fourth_cup.clone());
+        fourth_cup
     }
 
     fn next_cup(&self, current_cup: usize, picked_up_cups: &Vec<usize>) -> usize {
@@ -158,7 +144,7 @@ fn part2_input() -> InputData {
 }
 
 fn part1_input() -> InputData {
-    let mut deque = vec![6, 2, 4, 3, 9, 7, 1, 5, 8].iter().map(|i| *i).collect();
+    let deque = vec![6, 2, 4, 3, 9, 7, 1, 5, 8].iter().map(|i| *i).collect();
 
     InputData {
         max: 9,
